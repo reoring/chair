@@ -1,0 +1,15 @@
+{
+  "author": "reoring suin",
+  "name": "chair",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/reoring/chair.git"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

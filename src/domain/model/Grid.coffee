@@ -1,7 +1,11 @@
 class Grid
-    constructor: (@id)->
+    constructor: (@id, columns)->
         @rows = []
         @rowIds = []
+        @columns = []
+
+        for column in columns
+            @columns.push(column)
 
     append: (row)->
         if row.id in @rowIds

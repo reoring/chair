@@ -14,12 +14,17 @@ Column = (function() {
   Column.prototype.format = function(columnValue) {
     var format, _i, _len, _ref;
 
+    columnValue = this.escapeHTML(columnValue);
     _ref = this.formats;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       format = _ref[_i];
       columnValue = format.format(columnValue);
     }
     return columnValue;
+  };
+
+  Column.prototype.escapeHTML = function(string) {
+    return string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   };
 
   return Column;
@@ -40,10 +45,17 @@ ColumnFormat = (function() {
 })();
 
 Grid = (function() {
-  function Grid(id) {
+  function Grid(id, columns) {
+    var column, _i, _len;
+
     this.id = id;
     this.rows = [];
     this.rowIds = [];
+    this.columns = [];
+    for (_i = 0, _len = columns.length; _i < _len; _i++) {
+      column = columns[_i];
+      this.columns.push(column);
+    }
   }
 
   Grid.prototype.append = function(row) {

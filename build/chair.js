@@ -1,4 +1,1 @@
-(function() {
-  console.log('hello grunt');
-
-}).call(this);
+console.log('hello grunt');

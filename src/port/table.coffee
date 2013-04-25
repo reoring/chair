@@ -1,5 +1,5 @@
 define ->
-    class Chair
+    class Table
         constructor: (@table) ->
             @rows = {}
             @rowsById = {}

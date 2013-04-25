@@ -6,9 +6,13 @@ module.exports = function(grunt) {
 
     coffee: {
 	    compile: {
+           options: {
+             bare: true
+           },
 			     files: {
 					    'build/chair.js': ['src/*.coffee'],
-              'build/table.js': ['src/port/*.coffee']
+              'build/table.js': ['src/port/*.coffee'],
+              'build/datasource.js': ['src/infrastructure/*.coffee']
 				    }
 		     }
     },

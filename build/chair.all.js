@@ -388,6 +388,10 @@ Table = (function() {
     }
   };
 
+  Table.prototype.removeClassFromRow = function(id, className) {
+    return this.findRow(id).removeClass(className);
+  };
+
   Table.prototype.removeAllClassesFromRow = function(id) {
     var row;
 
@@ -501,14 +505,19 @@ ViewController = (function() {
     this.table.header(header);
     this.table.listenRowEvent('click', function(id, element) {
       if (_this.table.hasClassOfRow(id, _this.rowSelectedClass)) {
-        _this.applicationGridService.unselect(_this.tableSelector, id);
+        return _this.applicationGridService.unselect(_this.tableSelector, id);
       } else {
-        _this.applicationGridService.select(_this.tableSelector, id);
+        return _this.applicationGridService.select(_this.tableSelector, id);
       }
-      return _this.table.toggleClassToRow(id, _this.rowSelectedClass);
     });
     DomainEvent.subscribe('GridRowAppended', function(event, eventName) {
       return _this.table.insert(event.columns, event.rowId);
+    });
+    DomainEvent.subscribe('GridRowSelected', function(event, eventName) {
+      return _this.table.addClassToRow(event.rowId, _this.rowSelectedClass);
+    });
+    DomainEvent.subscribe('GridRowUnselected', function(event, eventName) {
+      return _this.table.removeClassFromRow(event.rowId, _this.rowSelectedClass);
     });
   }
 

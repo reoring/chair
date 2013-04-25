@@ -86,6 +86,10 @@ Table = (function() {
     }
   };
 
+  Table.prototype.removeClassFromRow = function(id, className) {
+    return this.findRow(id).removeClass(className);
+  };
+
   Table.prototype.removeAllClassesFromRow = function(id) {
     var row;
 

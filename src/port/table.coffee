@@ -62,6 +62,9 @@ class Table
         row = @findRow(id)
         row.addClass(className) if not row.hasClass(className)
 
+    removeClassFromRow: (id, className) ->
+        @findRow(id).removeClass(className)
+
     removeAllClassesFromRow: (id) ->
         row = @findRow(id)
         row.removeClass()

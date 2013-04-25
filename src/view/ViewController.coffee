@@ -8,12 +8,15 @@ class ViewController
 
 		@table.listenRowEvent 'click', (id, element) =>
 			if @table.hasClassOfRow id, @rowSelectedClass
-				@applicationGridService.unselect(@tableSelector, id)
+				@applicationGridService.unselect @tableSelector, id
 			else
-				@applicationGridService.select(@tableSelector, id)
+				@applicationGridService.select @tableSelector, id
 			
-			@table.toggleClassToRow(id, @rowSelectedClass)
-
-
 		DomainEvent.subscribe 'GridRowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId
+
+		DomainEvent.subscribe 'GridRowSelected', (event, eventName)=>
+			@table.addClassToRow event.rowId, @rowSelectedClass
+
+		DomainEvent.subscribe 'GridRowUnselected', (event, eventName)=>
+			@table.removeClassFromRow event.rowId, @rowSelectedClass

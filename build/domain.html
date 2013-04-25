@@ -7,9 +7,10 @@
     <title>table</title>
 
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
-    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js"></script>
 
-    <script type="text/javascript" src="chair.model.js"></script>
+    <script type="text/javascript" src="chair.domain.js"></script>
+    <script type="text/javascript" src="chair.infrastructure.js"></script>
+    <script type="text/javascript" src="chair.application.js"></script>
     <script type="text/javascript" src="http://coffeescript.org/extras/coffee-script.js"></script>
 </head>
 
@@ -26,10 +27,15 @@
 </table>
 
 <script type="text/coffeescript">
-
+# Event subscription
 DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
+# Application service
+applicationGridService = new GridService()
+applicationGridService.select('that_grid_id', 'that_row_id')
+
+# Domain logic example
 formaters =
     right: (html)-> return '<div class="pull-right">'+html+'</div>'
     bold: (html)-> return '<strong>'+html+'</strong>'

@@ -1,5 +1,53 @@
-var Column, ColumnFormat, DomainEvent, Grid, GridRowAppended, Row,
+var AllRowSelectedStatus, AllRowUnselectedStatus, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, Row, RowSelectionService,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+AllRowSelectedStatus = (function() {
+  function AllRowSelectedStatus() {
+    this.unselectedRows = [];
+  }
+
+  AllRowSelectedStatus.prototype.select = function(rowId) {
+    var index;
+
+    if (__indexOf.call(this.unselectedRows, rowId) >= 0) {
+      index = this.unselectedRows.indexOf(rowId);
+      return this.unselectedRows.splice(index, 1);
+    }
+  };
+
+  AllRowSelectedStatus.prototype.unselect = function(rowId) {
+    if (__indexOf.call(this.unselectedRows, rowId) < 0) {
+      return this.unselectedRows.push(rowId);
+    }
+  };
+
+  return AllRowSelectedStatus;
+
+})();
+
+AllRowUnselectedStatus = (function() {
+  function AllRowUnselectedStatus() {
+    this.selectedRows = [];
+  }
+
+  AllRowUnselectedStatus.prototype.select = function(rowId) {
+    if (__indexOf.call(this.selectedRows, rowId) < 0) {
+      return this.selectedRows.push(rowId);
+    }
+  };
+
+  AllRowUnselectedStatus.prototype.unselect = function(rowId) {
+    var index;
+
+    if (__indexOf.call(this.selectedRows, rowId) >= 0) {
+      index = this.selectedRows.indexOf(rowId);
+      return this.selectedRows.splice(index, 1);
+    }
+  };
+
+  return AllRowUnselectedStatus;
+
+})();
 
 Column = (function() {
   function Column(columnId, name, formats) {
@@ -68,6 +116,12 @@ DomainEvent = {
   }
 };
 
+DomainRegistry = {
+  rowSelectionService: function() {
+    return new RowSelectionService();
+  }
+};
+
 Grid = (function() {
   function Grid(id, columns) {
     var column, _i, _len;
@@ -94,6 +148,17 @@ Grid = (function() {
   };
 
   return Grid;
+
+})();
+
+GridRepository = (function() {
+  function GridRepository() {}
+
+  GridRepository.prototype.gridOfId = function(id, callback) {
+    throw "must be implemented by subclass";
+  };
+
+  return GridRepository;
 
 })();
 
@@ -135,5 +200,39 @@ Row = (function() {
   }
 
   return Row;
+
+})();
+
+RowSelectionService = (function() {
+  function RowSelectionService() {}
+
+  RowSelectionService.prototype.gridSelectionStatuses = [];
+
+  RowSelectionService.prototype.selectAll = function(gridId) {
+    return this.gridSelectionStatuses[gridId] = new AllRowSelectedStatus();
+  };
+
+  RowSelectionService.prototype.unselectedAll = function(gridId) {
+    if (!this.gridSelectionStatuses[gridId]) {
+      throw new Error('Invalid status trasition');
+    }
+    return this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
+  };
+
+  RowSelectionService.prototype.select = function(gridId, rowId) {
+    if (!this.gridSelectionStatuses[gridId]) {
+      this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
+    }
+    return this.gridSelectionStatuses[gridId].select(rowId);
+  };
+
+  RowSelectionService.prototype.unselect = function(gridId, rowId) {
+    if (!this.gridSelectionStatuses[gridId]) {
+      throw new Error('Invalid status trasition');
+    }
+    return this.gridSelectionStatuses[gridId].unselect(rowId);
+  };
+
+  return RowSelectionService;
 
 })();

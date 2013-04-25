@@ -32,8 +32,8 @@ module.exports = (grunt) ->
                 banner: "/*! <%= pkg.name %> <%= grunt.template.today(\"yyyy-mm-dd\") %> */\n"
 
             build:
-                src: "build/<%= pkg.name %>.js"
-                dest: "build/<%= pkg.name %>.min.js"
+                src: "build/<%= pkg.name %>.all.js"
+                dest: "build/<%= pkg.name %>.all.min.js"
 
     grunt.loadNpmTasks "grunt-contrib-coffee"
     grunt.loadNpmTasks "grunt-contrib-uglify"

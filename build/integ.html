@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>table</title>
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js"></script>
+
+    <script type="text/javascript" src="chair.model.js"></script>
+    <script type="text/javascript" src="t.js"></script>
+    <script type="text/javascript" src="http://coffeescript.org/extras/coffee-script.js"></script>
+
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+
+    <style type="text/css">
+    tr.row_selected {
+        background: #ffc;
+    }
+
+    .table tr {
+        cursor: pointer;
+    }
+
+    .table span {
+        cursor: text;
+    }
+
+    .table td {
+        border-right: 1px solid #ddd;
+    }
+    </style>
+</head>
+
+<body>
+
+<table id="table_table" class="table">
+    <thead>
+    </thead>
+
+    <tbody>
+    </tbody>
+</table>
+
+<script type="text/coffeescript">
+
+
+$ ->
+    table = new Table($('#table_table'));
+    table.header(['name', 'age'])
+
+    table.listenRowEvent 'click', (id, element) ->
+        table.toggleClassToRow(id, 'row_selected')
+
+    DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
+        table.insert event.columns, event.rowId
+
+formaters =
+    right: (html)-> return '<div class="pull-right">'+html+'</div>'
+    bold: (html)-> return '<strong>'+html+'</strong>'
+
+grid = new Grid('id', [
+    new Column('name', "Onamae", [new ColumnFormat(formaters.right), new ColumnFormat(formaters.bold)])
+    new Column('age', "Nenrei")
+])
+grid.append(new Row('line1', {name: "suin", age: 26}))
+grid.append(new Row('line2', {name: "reoring", age: 300}))
+grid.append(new Row('line3', {name: "nouphet", age: 30000}))
+grid.append(new Row('line4', {name: "ok!", age: 1}))
+
+
+
+</script>
+
+</body>
+</html>

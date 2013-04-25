@@ -69,7 +69,7 @@ define ->
                 callback id, $(this)
 
         listenRowEvent: (eventName, callback) ->
-            @table.find('tr').on eventName, ->
+            @table.on eventName, 'tr', ->
                 id = $(this).attr('data-id')
                 callback id, $(this)
 

@@ -26,6 +26,10 @@
 </table>
 
 <script type="text/coffeescript">
+
+DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
 formaters =
     right: (html)-> return '<div class="pull-right">'+html+'</div>'
     bold: (html)-> return '<strong>'+html+'</strong>'
@@ -37,6 +41,7 @@ grid = new Grid('id', [
 grid.append(new Row('line1', {name: "suin", age: 26}))
 grid.append(new Row('line2', {name: "reoring", age: 300}))
 grid.append(new Row('line3', {name: "nouphet", age: 30000}))
+
 
 
 </script>

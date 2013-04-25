@@ -1,4 +1,4 @@
-var Column, ColumnFormat, Grid, Row,
+var Column, ColumnFormat, DomainEvent, Grid, GridRowAppended, Row,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 Column = (function() {
@@ -44,6 +44,30 @@ ColumnFormat = (function() {
 
 })();
 
+DomainEvent = {
+  channels: [],
+  publish: function(eventName, event) {
+    var subscriber, _i, _len, _ref, _results;
+
+    if (this.channels[eventName] === void 0) {
+      this.channels[eventName] = [];
+    }
+    _ref = this.channels[eventName];
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      subscriber = _ref[_i];
+      _results.push(subscriber(event.serialize(), eventName));
+    }
+    return _results;
+  },
+  subscribe: function(eventName, listener) {
+    if (this.channels[eventName] === void 0) {
+      this.channels[eventName] = [];
+    }
+    return this.channels[eventName].push(listener);
+  }
+};
+
 Grid = (function() {
   function Grid(id, columns) {
     var column, _i, _len;
@@ -65,10 +89,36 @@ Grid = (function() {
       throw new Error("Row(id:" + row.id + ") already exists in the Grid(id:" + this.id + ")");
     }
     this.rowIds.push(row.id);
-    return this.rows.push(row);
+    this.rows.push(row);
+    return DomainEvent.publish("GridRowAppended", new GridRowAppended(this.id, row.id, row.columns));
   };
 
   return Grid;
+
+})();
+
+GridRowAppended = (function() {
+  function GridRowAppended(gridId, rowId, columns) {
+    var key, value;
+
+    this.gridId = gridId;
+    this.rowId = rowId;
+    this.columns = {};
+    for (key in columns) {
+      value = columns[key];
+      this.columns[key] = value;
+    }
+  }
+
+  GridRowAppended.prototype.serialize = function() {
+    return {
+      gridId: this.gridId,
+      rowId: this.rowId,
+      columns: this.columns
+    };
+  };
+
+  return GridRowAppended;
 
 })();
 

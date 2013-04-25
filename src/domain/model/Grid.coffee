@@ -12,3 +12,4 @@ class Grid
             throw new Error("Row(id:#{row.id}) already exists in the Grid(id:#{@id})")
         @rowIds.push(row.id)
         @rows.push(row)
+        DomainEvent.publish("GridRowAppended", new GridRowAppended(@id, row.id, row.columns))

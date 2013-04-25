@@ -1,28 +1,28 @@
 module.exports = (grunt) ->
   
-  # Project configuration.
-  grunt.initConfig
-    pkg: grunt.file.readJSON("package.json")
-    coffee:
-      compile:
-        options:
-          bare: true
+    # Project configuration.
+    grunt.initConfig
+        pkg: grunt.file.readJSON("package.json")
+        coffee:
+            compile:
+                options:
+                    bare: true
 
-        files:
-          "build/chair.js": ["src/*.coffee"]
-          "build/table.js": ["src/port/*.coffee"]
-          "build/datasource.js": ["src/infrastructure/*.coffee"]
+                files:
+                    "build/chair.js": ["src/*.coffee"]
+                    "build/table.js": ["src/port/*.coffee"]
+                    "build/datasource.js": ["src/infrastructure/*.coffee"]
 
-    uglify:
-      options:
-        banner: "/*! <%= pkg.name %> <%= grunt.template.today(\"yyyy-mm-dd\") %> */\n"
+        uglify:
+            options:
+                banner: "/*! <%= pkg.name %> <%= grunt.template.today(\"yyyy-mm-dd\") %> */\n"
 
-      build:
-        src: "build/<%= pkg.name %>.js"
-        dest: "build/<%= pkg.name %>.min.js"
+            build:
+                src: "build/<%= pkg.name %>.js"
+                dest: "build/<%= pkg.name %>.min.js"
 
-  grunt.loadNpmTasks "grunt-contrib-coffee"
-  grunt.loadNpmTasks "grunt-contrib-uglify"
-  
-  # Default task(s).
-  grunt.registerTask "default", ["coffee", "uglify"]
+    grunt.loadNpmTasks "grunt-contrib-coffee"
+    grunt.loadNpmTasks "grunt-contrib-uglify"
+
+    # Default task(s).
+    grunt.registerTask "default", ["coffee", "uglify"]

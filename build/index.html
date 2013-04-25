@@ -4,17 +4,15 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
-    <title>Chair</title>
+    <title>table</title>
 
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js"></script>
-
-    <script type="text/javascript" src="chair.min.js"></script>
 </head>
 
 <body>
 
-<table id="chair_table" class="table">
+<table id="table_table" class="table">
     <thead>
         <th>test</th>
         <th>test2</th>
@@ -26,27 +24,27 @@
 
 <script type="text/javascript">
 $(function() {
-    require(['table.js'], function(ChairClazz) {
-        var chair = new ChairClazz($('#chair_table'));
+    require(['table.js'], function(tableClazz) {
+        var table = new tableClazz($('#table_table'));
 
-        chair.insert(['suin', 26], 'suin');
-        chair.insert(['reoring', 30], 'reoring');
+        table.insert(['suin', 26], 'suin');
+        table.insert(['reoring', 30], 'reoring');
 
         for (var i = 30; i < 40; i++) {
-            chair.insert(['hoge ' + i, i]);
+            table.insert(['hoge ' + i, i]);
         }
 
-        console.log(chair.get(0));
-        console.log(chair.get(1));
+        console.log(table.get(0));
+        console.log(table.get(1));
 
-        console.log(chair.getById('suin'));
-        console.log(chair.getById('reoring'));
-        console.log(chair.getById('hoge'));
+        console.log(table.getById('suin'));
+        console.log(table.getById('reoring'));
+        console.log(table.getById('hoge'));
 
-        console.log(chair.removeById('reoring'));
+        console.log(table.removeById('reoring'));
 
-        chair.updateById('suin', ['suin', 27]);
-        chair.updateById('suin', ['suin', 28]);
+        table.updateById('suin', ['suin', 27]);
+        table.updateById('suin', ['suin', 28]);
     });
 });
 </script>

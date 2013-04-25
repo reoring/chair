@@ -1,4 +1,4 @@
-var AjaxDataSource, AllRowSelectedStatus, AllRowUnselectedStatus, ArrayDataSource, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, InMemoryGridRepository, Row, RowSelectionService, Table,
+var AjaxDataSource, AllRowSelectedStatus, AllRowUnselectedStatus, ArrayDataSource, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, GridService, InMemoryGridRepository, Row, RowSelectionService, Table, ViewController,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -280,10 +280,25 @@ RowSelectionService = (function() {
       throw new Error('Invalid status trasition');
     }
     this.gridSelectionStatuses[gridId].unselect(rowId);
-    return DomainEvent.publish("GridRowUnSelected", new GridRowUnelected(gridId, rowId));
+    return DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, rowId));
   };
 
   return RowSelectionService;
+
+})();
+
+GridService = (function() {
+  function GridService() {}
+
+  GridService.prototype.select = function(gridId, rowId) {
+    return DomainRegistry.rowSelectionService().select(gridId, rowId);
+  };
+
+  GridService.prototype.unselect = function(gridId, rowId) {
+    return DomainRegistry.rowSelectionService().unselect(gridId, rowId);
+  };
+
+  return GridService;
 
 })();
 
@@ -384,6 +399,10 @@ Table = (function() {
     return this.findRow(id).toggleClass(className);
   };
 
+  Table.prototype.hasClassOfRow = function(id, className) {
+    return this.findRow(id).hasClass(className);
+  };
+
   Table.prototype.findRow = function(id) {
     return $(this.table).find('tr[data-id=' + id + ']');
   };
@@ -469,3 +488,30 @@ InMemoryGridRepository = (function(_super) {
   return InMemoryGridRepository;
 
 })(GridRepository);
+
+ViewController = (function() {
+  function ViewController(tableSelector, header, rowSelectedClass) {
+    var _this = this;
+
+    this.tableSelector = tableSelector;
+    this.header = header;
+    this.rowSelectedClass = rowSelectedClass != null ? rowSelectedClass : 'row_selected';
+    this.table = new Table($(this.tableSelector));
+    this.applicationGridService = new GridService();
+    this.table.header(header);
+    this.table.listenRowEvent('click', function(id, element) {
+      if (_this.table.hasClassOfRow(id, _this.rowSelectedClass)) {
+        _this.applicationGridService.unselect(_this.tableSelector, id);
+      } else {
+        _this.applicationGridService.select(_this.tableSelector, id);
+      }
+      return _this.table.toggleClassToRow(id, _this.rowSelectedClass);
+    });
+    DomainEvent.subscribe('GridRowAppended', function(event, eventName) {
+      return _this.table.insert(event.columns, event.rowId);
+    });
+  }
+
+  return ViewController;
+
+})();

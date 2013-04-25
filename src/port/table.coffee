@@ -69,6 +69,9 @@ class Table
     toggleClassToRow: (id, className) ->
         @findRow(id).toggleClass className
 
+    hasClassOfRow: (id, className) ->
+        @findRow(id).hasClass className
+
     findRow: (id) ->
         $(@table).find('tr[data-id=' + id + ']')
 

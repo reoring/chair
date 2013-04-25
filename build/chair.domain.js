@@ -278,7 +278,7 @@ RowSelectionService = (function() {
       throw new Error('Invalid status trasition');
     }
     this.gridSelectionStatuses[gridId].unselect(rowId);
-    return DomainEvent.publish("GridRowUnSelected", new GridRowUnelected(gridId, rowId));
+    return DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, rowId));
   };
 
   return RowSelectionService;

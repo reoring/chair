@@ -16,8 +16,10 @@ module.exports = (grunt) ->
                     "build/datasource.js": ["src/infrastructure/*.coffee"]
                     "build/chair.all.js": ["src/*.coffee",
                                            "src/domain/model/*.coffee",
+                                           "src/application/*.coffee",
                                            "src/port/*.coffee",
-                                           "src/infrastructure/*.coffee"]
+                                           "src/infrastructure/*.coffee",
+                                           "src/view/*.coffee"]
  
             application:
                 options:
@@ -39,6 +41,13 @@ module.exports = (grunt) ->
                     bare: true
                 files:
                     "build/chair.infrastructure.js": ["src/infrastructure/*.coffee"]
+
+            view:
+                options:
+                    join: true
+                    bare: true
+                files:
+                    "build/chair.view.js": ["src/view/*.coffee"]
 
         uglify:
             options:

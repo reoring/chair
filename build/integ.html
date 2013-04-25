@@ -37,7 +37,7 @@
 <body>
 
 <div class="container">
-    <table id="table_table" class="table">
+    <table id="chair_table" class="table">
         <thead></thead>
         <tbody></tbody>
     </table>
@@ -45,15 +45,14 @@
 
 <script type="text/coffeescript">
 
+DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
+DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
 $ ->
-    table = new Table($('#table_table'));
-    table.header(['name', 'age'])
-
-    table.listenRowEvent 'click', (id, element) ->
-        table.toggleClassToRow(id, 'row_selected')
-
-    DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
-        table.insert event.columns, event.rowId
+    viewController = new ViewController("#chair_table", ['name', 'age'])
 
 formaters =
     right: (html)-> return '<div class="pull-right">'+html+'</div>'

@@ -19,4 +19,4 @@ class RowSelectionService
         throw new Error('Invalid status trasition') unless @gridSelectionStatuses[gridId]
         @gridSelectionStatuses[gridId].unselect(rowId)
 
-        DomainEvent.publish "GridRowUnSelected", new GridRowUnelected(gridId, rowId)
+        DomainEvent.publish "GridRowUnselected", new GridRowUnselected(gridId, rowId)

@@ -97,6 +97,10 @@ Table = (function() {
     return this.findRow(id).toggleClass(className);
   };
 
+  Table.prototype.hasClassOfRow = function(id, className) {
+    return this.findRow(id).hasClass(className);
+  };
+
   Table.prototype.findRow = function(id) {
     return $(this.table).find('tr[data-id=' + id + ']');
   };

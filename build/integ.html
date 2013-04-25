@@ -10,7 +10,7 @@
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js"></script>
 
     <script type="text/javascript" src="chair.model.js"></script>
-    <script type="text/javascript" src="t.js"></script>
+    <script type="text/javascript" src="table.js"></script>
     <script type="text/javascript" src="http://coffeescript.org/extras/coffee-script.js"></script>
 
     <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
@@ -31,21 +31,23 @@
     .table td {
         border-right: 1px solid #ddd;
     }
+
+    .table td.name {
+        background: #cfc;
+    }
     </style>
 </head>
 
 <body>
 
-<table id="table_table" class="table">
-    <thead>
-    </thead>
-
-    <tbody>
-    </tbody>
-</table>
+<div class="container">
+    <table id="table_table" class="table">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script type="text/coffeescript">
-
 
 $ ->
     table = new Table($('#table_table'));
@@ -69,8 +71,6 @@ grid.append(new Row('line1', {name: "suin", age: 26}))
 grid.append(new Row('line2', {name: "reoring", age: 300}))
 grid.append(new Row('line3', {name: "nouphet", age: 30000}))
 grid.append(new Row('line4', {name: "ok!", age: 1}))
-
-
 
 </script>
 

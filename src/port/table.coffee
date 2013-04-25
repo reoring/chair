@@ -1,89 +1,97 @@
-define ->
-    class Table
-        constructor: (@table) ->
-            @rows = {}
-            @rowsById = {}
-            @numberOfRows = 0
+class Table
+    constructor: (@table) ->
+        @rows = {}
+        @rowsById = {}
+        @numberOfRows = 0
 
-        header: (columns) ->
-            newTr = $('<tr></tr>')
+    header: (@columns) ->
+        newTr = $('<tr></tr>')
 
-            for column in columns
-                newTr.append $('<th></th>').append $('<span></span>').append column
-                @table.find('thead').append newTr
+        for column in @columns
+            newTr.append $('<th></th>').append $('<span></span>').append column
+            @table.find('thead').append newTr
 
-        get: (index) ->
-            @rows[index]
+    get: (index) ->
+        @rows[index]
 
-        getById: (id) ->
-            @rowsById[id]
+    getById: (id) ->
+        @rowsById[id]
 
-        removeById: (id) ->
-            @findRow(id).remove
+    removeById: (id) ->
+        @findRow(id).remove
 
-            data = @getById id
-            delete @rowsById[id]
+        data = @getById id
+        delete @rowsById[id]
 
-            return data
+        return data
 
-        updateById: (id, data) ->
-            newTr = $('<tr></tr>').attr 'data-id', id
-            oldTr = $(@table).find('tr[data-id=' + id + ']')
+    updateById: (id, data) ->
+        newTr = $('<tr></tr>').attr 'data-id', id
+        oldTr = $(@table).find('tr[data-id=' + id + ']')
 
-            @getById id = data
+        @getById id = data
 
-            for x in data
-                newTr.append $('<td></td>').append $('<span></span>').append x
+        columnIndex = 0
 
-            oldTr.html(newTr.html())
+        for x in data
+            newTr.append @createRowColumn @columns[columnIndex], x
+            columnIndex++
 
-        insert: (data, id) ->
-            id = @guid() if id is undefined
+        oldTr.html(newTr.html())
 
-            tr = $('<tr></tr>').attr 'data-id', id
+    insert: (data, id) ->
+        id = @guid() if id is undefined
 
-            @rows[@numberOfRows++] = data
-            @rowsById[id] = data
+        tr = $('<tr></tr>').attr 'data-id', id
 
-            for x in data
-                tr.append $('<td></td>').append $('<span></span>').append x
+        @rows[@numberOfRows++] = data
+        @rowsById[id] = data
 
-            @table.find('tbody').append tr
+        columnIndex = 0
 
-        addClassToRow: (id, className) ->
-            row = @findRow(id)
-            row.addClass(className) if not row.hasClass(className)
+        for x in data
+            tr.append @createRowColumn @columns[columnIndex], x
+            columnIndex++
 
-        removeAllClassesFromRow: (id) ->
-            row = @findRow(id)
-            row.removeClass()
+        @table.find('tbody').append tr
 
-        toggleClassToRow: (id, className) ->
-            @findRow(id).toggleClass className
+    createRowColumn: (column, value) ->
+        $('<td></td>').addClass(column).append $('<span></span>').append value
 
-        findRow: (id) ->
-            $(@table).find('tr[data-id=' + id + ']')
+    addClassToRow: (id, className) ->
+        row = @findRow(id)
+        row.addClass(className) if not row.hasClass(className)
 
-        listen: (id, eventName, callback) ->
-            @findRow(id).on eventName, ->
-                callback id, $(this)
+    removeAllClassesFromRow: (id) ->
+        row = @findRow(id)
+        row.removeClass()
 
-        listenRowEvent: (eventName, callback) ->
-            @table.on eventName, 'tr', ->
-                id = $(this).attr('data-id')
-                callback id, $(this)
+    toggleClassToRow: (id, className) ->
+        @findRow(id).toggleClass className
+
+    findRow: (id) ->
+        $(@table).find('tr[data-id=' + id + ']')
+
+    listen: (id, eventName, callback) ->
+        @findRow(id).on eventName, ->
+            callback id, $(this)
+
+    listenRowEvent: (eventName, callback) ->
+        @table.on eventName, 'tr', ->
+            id = $(this).attr('data-id')
+            callback id, $(this)
 
 
-        listenTextEvent: (eventName, callback) ->
-            @table.find('span').on eventName, ->
-                id = $(this).parents('tr').attr('data-id')
-                callback id, $(this)
-                return false
+    listenTextEvent: (eventName, callback) ->
+        @table.find('span').on eventName, ->
+            id = $(this).parents('tr').attr('data-id')
+            callback id, $(this)
+            return false
 
-        s4: ->
-            Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1)
+    s4: ->
+        Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1)
 
-        guid: ->
-          return @s4() + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + @s4() + @s4()
+    guid: ->
+      return @s4() + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + @s4() + @s4()

@@ -12,7 +12,6 @@ module.exports = (grunt) ->
                 files:
                     "build/chair.js": ["src/*.coffee"]
                     "build/table.js": ["src/port/table.coffee"]
-                    "build/t.js": ["src/port/t.coffee"]
                     "build/datasource.js": ["src/infrastructure/*.coffee"]
 
             domain:

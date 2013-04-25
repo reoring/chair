@@ -11,6 +11,8 @@
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js"></script>
 
+    <script type="text/javascript" src="table.js"></script>
+
     <style type="text/css">
     tr.row_selected {
         background: #ffc;
@@ -46,8 +48,7 @@
 
 <script type="text/javascript">
 $(function() {
-    require(['table.js'], function(tableClazz) {
-        var table = new tableClazz($('#table_table'));
+        var table = new Table($('#table_table'));
 
         table.header(['name', 'age'])
 
@@ -78,7 +79,7 @@ $(function() {
         table.listenRowEvent('click', function(id, element) {
             table.toggleClassToRow(id, 'row_selected');
         });
-    });
+
 });
 </script>
 

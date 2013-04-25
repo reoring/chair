@@ -9,12 +9,14 @@ Table = (function() {
   }
 
   Table.prototype.header = function(columns) {
-    var column, newTr, _i, _len, _results;
+    var column, newTr, _i, _len, _ref, _results;
 
+    this.columns = columns;
     newTr = $('<tr></tr>');
+    _ref = this.columns;
     _results = [];
-    for (_i = 0, _len = columns.length; _i < _len; _i++) {
-      column = columns[_i];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      column = _ref[_i];
       newTr.append($('<th></th>').append($('<span></span>').append(column)));
       _results.push(this.table.find('thead').append(newTr));
     }
@@ -39,20 +41,22 @@ Table = (function() {
   };
 
   Table.prototype.updateById = function(id, data) {
-    var newTr, oldTr, x, _i, _len;
+    var columnIndex, newTr, oldTr, x, _i, _len;
 
     newTr = $('<tr></tr>').attr('data-id', id);
     oldTr = $(this.table).find('tr[data-id=' + id + ']');
     this.getById(id = data);
+    columnIndex = 0;
     for (_i = 0, _len = data.length; _i < _len; _i++) {
       x = data[_i];
-      newTr.append($('<td></td>').append($('<span></span>').append(x)));
+      newTr.append(this.createRowColumn(this.columns[columnIndex], x));
+      columnIndex++;
     }
     return oldTr.html(newTr.html());
   };
 
   Table.prototype.insert = function(data, id) {
-    var tr, x, _i, _len;
+    var columnIndex, tr, x, _i, _len;
 
     if (id === void 0) {
       id = this.guid();
@@ -60,11 +64,17 @@ Table = (function() {
     tr = $('<tr></tr>').attr('data-id', id);
     this.rows[this.numberOfRows++] = data;
     this.rowsById[id] = data;
+    columnIndex = 0;
     for (_i = 0, _len = data.length; _i < _len; _i++) {
       x = data[_i];
-      tr.append($('<td></td>').append($('<span></span>').append(x)));
+      tr.append(this.createRowColumn(this.columns[columnIndex], x));
+      columnIndex++;
     }
     return this.table.find('tbody').append(tr);
+  };
+
+  Table.prototype.createRowColumn = function(column, value) {
+    return $('<td></td>').addClass(column).append($('<span></span>').append(value));
   };
 
   Table.prototype.addClassToRow = function(id, className) {

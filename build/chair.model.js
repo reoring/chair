@@ -103,10 +103,10 @@ GridRowAppended = (function() {
 
     this.gridId = gridId;
     this.rowId = rowId;
-    this.columns = {};
+    this.columns = [];
     for (key in columns) {
       value = columns[key];
-      this.columns[key] = value;
+      this.columns.push(value);
     }
   }
 

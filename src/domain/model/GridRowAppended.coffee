@@ -1,8 +1,8 @@
 class GridRowAppended
     constructor: (@gridId, @rowId, columns)->
-        @columns = {}
+        @columns = []
         for key, value of columns
-            @columns[key] = value
+            @columns.push(value)
 
 
     serialize: ()->

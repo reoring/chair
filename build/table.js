@@ -55,11 +55,12 @@ define(function() {
     Table.prototype.insert = function(data, id) {
       var tr, x, _i, _len;
 
+      if (id === void 0) {
+        id = this.guid();
+      }
       tr = $('<tr></tr>').attr('data-id', id);
       this.rows[this.numberOfRows++] = data;
-      if (id != null) {
-        this.rowsById[id] = data;
-      }
+      this.rowsById[id] = data;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         x = data[_i];
         tr.append($('<td></td>').append($('<span></span>').append(x)));
@@ -114,6 +115,14 @@ define(function() {
         callback(id, $(this));
         return false;
       });
+    };
+
+    Table.prototype.s4 = function() {
+      return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    };
+
+    Table.prototype.guid = function() {
+      return this.s4() + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + this.s4() + this.s4();
     };
 
     return Table;

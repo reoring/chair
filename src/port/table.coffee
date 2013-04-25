@@ -38,10 +38,12 @@ define ->
             oldTr.html(newTr.html())
 
         insert: (data, id) ->
+            id = @guid() if id is undefined
+
             tr = $('<tr></tr>').attr 'data-id', id
 
             @rows[@numberOfRows++] = data
-            @rowsById[id] = data if id?
+            @rowsById[id] = data
 
             for x in data
                 tr.append $('<td></td>').append $('<span></span>').append x
@@ -77,3 +79,11 @@ define ->
                 id = $(this).parents('tr').attr('data-id')
                 callback id, $(this)
                 return false
+
+        s4: ->
+            Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1)
+
+        guid: ->
+          return @s4() + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + @s4() + @s4()

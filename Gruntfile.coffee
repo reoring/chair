@@ -3,6 +3,7 @@ module.exports = (grunt) ->
     # Project configuration.
     grunt.initConfig
         pkg: grunt.file.readJSON("package.json")
+
         coffee:
             compile:
                 options:
@@ -13,6 +14,11 @@ module.exports = (grunt) ->
                     "build/chair.js": ["src/*.coffee"]
                     "build/table.js": ["src/port/table.coffee"]
                     "build/datasource.js": ["src/infrastructure/*.coffee"]
+
+                    "build/chair.all.js": ["src/*.coffee",
+                                           "src/domain/model/*.coffee",
+                                           "src/port/*.coffee",
+                                           "src/infrastructure/*.coffee"]
 
             domain:
                 options:

@@ -1,24 +1,48 @@
 <!DOCTYPE HTML>
 
-<html>
+<html lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
     <title>table</title>
 
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.0.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.5/require.min.js"></script>
+
+    <style type="text/css">
+    tr.row_selected {
+        background: #ffc !important;
+    }
+
+    .table tr {
+        cursor: pointer !important;
+    }
+
+    .table span {
+        cursor: text;
+    }
+
+    .table td {
+        border-right: 1px solid #ddd !important;
+    }
+    </style>
 </head>
 
 <body>
 
-<table id="table_table" class="table">
-    <thead>
-    </thead>
+<div class="container">
 
-    <tbody>
-    </tbody>
-</table>
+    <table id="table_table" class="table">
+        <thead>
+        </thead>
+
+        <tbody>
+        </tbody>
+    </table>
+
+</div>
 
 <script type="text/javascript">
 $(function() {
@@ -45,6 +69,15 @@ $(function() {
 
         table.updateById('suin', ['suin', 27]);
         table.updateById('suin', ['suin', 28]);
+
+        table.addClassToRow('suin', 'suin_super_class');
+        table.removeAllClassesFromRow('suin');
+        table.toggleClassToRow('suin', 'suin_ultra_class');
+        table.toggleClassToRow('suin', 'suin_ultra_class');
+
+        table.listenRowEvent('click', function(id, element) {
+            table.toggleClassToRow(id, 'row_selected');
+        });
     });
 });
 </script>

@@ -16,7 +16,7 @@ define(function() {
       _results = [];
       for (_i = 0, _len = columns.length; _i < _len; _i++) {
         column = columns[_i];
-        newTr.append($('<td></td>').append(column));
+        newTr.append($('<th></th>').append($('<span></span>').append(column)));
         _results.push(this.table.find('thead').append(newTr));
       }
       return _results;
@@ -33,7 +33,7 @@ define(function() {
     Table.prototype.removeById = function(id) {
       var data;
 
-      $(this.table).find('tr[data-id=' + id + ']').remove;
+      this.findRow(id).remove;
       data = this.getById(id);
       delete this.rowsById[id];
       return data;
@@ -47,7 +47,7 @@ define(function() {
       this.getById(id = data);
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         x = data[_i];
-        newTr.append($('<td></td>').append(x));
+        newTr.append($('<td></td>').append($('<span></span>').append(x)));
       }
       return oldTr.html(newTr.html());
     };
@@ -62,9 +62,58 @@ define(function() {
       }
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         x = data[_i];
-        tr.append($('<td></td>').append(x));
+        tr.append($('<td></td>').append($('<span></span>').append(x)));
       }
       return this.table.find('tbody').append(tr);
+    };
+
+    Table.prototype.addClassToRow = function(id, className) {
+      var row;
+
+      row = this.findRow(id);
+      if (!row.hasClass(className)) {
+        return row.addClass(className);
+      }
+    };
+
+    Table.prototype.removeAllClassesFromRow = function(id) {
+      var row;
+
+      row = this.findRow(id);
+      return row.removeClass();
+    };
+
+    Table.prototype.toggleClassToRow = function(id, className) {
+      return this.findRow(id).toggleClass(className);
+    };
+
+    Table.prototype.findRow = function(id) {
+      return $(this.table).find('tr[data-id=' + id + ']');
+    };
+
+    Table.prototype.listen = function(id, eventName, callback) {
+      return this.findRow(id).on(eventName, function() {
+        return callback(id, $(this));
+      });
+    };
+
+    Table.prototype.listenRowEvent = function(eventName, callback) {
+      return this.table.find('tr').on(eventName, function() {
+        var id;
+
+        id = $(this).attr('data-id');
+        return callback(id, $(this));
+      });
+    };
+
+    Table.prototype.listenTextEvent = function(eventName, callback) {
+      return this.table.find('span').on(eventName, function() {
+        var id;
+
+        id = $(this).parents('tr').attr('data-id');
+        callback(id, $(this));
+        return false;
+      });
     };
 
     return Table;

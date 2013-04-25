@@ -9,6 +9,19 @@ define(function() {
       this.numberOfRows = 0;
     }
 
+    Table.prototype.header = function(columns) {
+      var column, newTr, _i, _len, _results;
+
+      newTr = $('<tr></tr>');
+      _results = [];
+      for (_i = 0, _len = columns.length; _i < _len; _i++) {
+        column = columns[_i];
+        newTr.append($('<td></td>').append(column));
+        _results.push(this.table.find('thead').append(newTr));
+      }
+      return _results;
+    };
+
     Table.prototype.get = function(index) {
       return this.rows[index];
     };

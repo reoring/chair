@@ -14,8 +14,6 @@
 
 <table id="table_table" class="table">
     <thead>
-        <th>test</th>
-        <th>test2</th>
     </thead>
 
     <tbody>
@@ -26,6 +24,8 @@
 $(function() {
     require(['table.js'], function(tableClazz) {
         var table = new tableClazz($('#table_table'));
+
+        table.header(['name', 'age'])
 
         table.insert(['suin', 26], 'suin');
         table.insert(['reoring', 30], 'reoring');

@@ -5,6 +5,13 @@ define ->
             @rowsById = {}
             @numberOfRows = 0
 
+        header: (columns) ->
+            newTr = $('<tr></tr>')
+
+            for column in columns
+                newTr.append $('<td></td>').append column
+                @table.find('thead').append newTr
+
         get: (index) ->
             @rows[index]
 

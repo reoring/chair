@@ -32,7 +32,6 @@ $(function() {
         var arrayDs = new AjaxDataSource('data.json')
 
         var rows = arrayDs.retrieve(function(rows) {
-            console.log(rows);
             for (var i in rows) {
                 table.insert(rows[i], rows[i][0]);
             }

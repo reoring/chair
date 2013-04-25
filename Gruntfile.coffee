@@ -6,12 +6,20 @@ module.exports = (grunt) ->
         coffee:
             compile:
                 options:
+                    join: true
                     bare: true
 
                 files:
                     "build/chair.js": ["src/*.coffee"]
                     "build/table.js": ["src/port/*.coffee"]
                     "build/datasource.js": ["src/infrastructure/*.coffee"]
+
+            domain:
+                options:
+                    join: true
+                    bare: true
+                files:
+                    "build/chair.model.js": ["src/domain/model/*.coffee"]
 
         uglify:
             options:

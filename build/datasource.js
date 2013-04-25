@@ -1,4 +1,4 @@
-var AjaxDataSource;
+var AjaxDataSource, ArrayDataSource;
 
 AjaxDataSource = (function() {
   function AjaxDataSource(url) {
@@ -14,8 +14,6 @@ AjaxDataSource = (function() {
   return AjaxDataSource;
 
 })();
-
-var ArrayDataSource;
 
 ArrayDataSource = (function() {
   function ArrayDataSource() {}

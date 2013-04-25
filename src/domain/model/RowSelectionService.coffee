@@ -13,6 +13,10 @@ class RowSelectionService
             @gridSelectionStatuses[gridId] = new AllRowUnselectedStatus()
         @gridSelectionStatuses[gridId].select(rowId)
 
+        DomainEvent.publish "GridRowSelected", new GridRowSelected(gridId, rowId)
+
     unselect: (gridId, rowId)->
         throw new Error('Invalid status trasition') unless @gridSelectionStatuses[gridId]
         @gridSelectionStatuses[gridId].unselect(rowId)
+
+        DomainEvent.publish "GridRowUnSelected", new GridRowUnelected(gridId, rowId)

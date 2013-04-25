@@ -1,4 +1,4 @@
-var AllRowSelectedStatus, AllRowUnselectedStatus, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, Row, RowSelectionService,
+var AllRowSelectedStatus, AllRowUnselectedStatus, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, Row, RowSelectionService,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 AllRowSelectedStatus = (function() {
@@ -187,6 +187,52 @@ GridRowAppended = (function() {
 
 })();
 
+GridRowSelected = (function() {
+  function GridRowSelected(gridId, rowId) {
+    this.gridId = gridId;
+    this.rowId = rowId;
+    if (!this.gridId) {
+      throw new Error("no grid id specified");
+    }
+    if (!this.rowId) {
+      throw new Error("no row id specified");
+    }
+  }
+
+  GridRowSelected.prototype.serialize = function() {
+    return {
+      gridId: this.gridId,
+      rowId: this.rowId
+    };
+  };
+
+  return GridRowSelected;
+
+})();
+
+GridRowUnselected = (function() {
+  function GridRowUnselected(gridId, rowId) {
+    this.gridId = gridId;
+    this.rowId = rowId;
+    if (!this.gridId) {
+      throw new Error("no grid id specified");
+    }
+    if (!this.rowId) {
+      throw new Error("no row id specified");
+    }
+  }
+
+  GridRowUnselected.prototype.serialize = function() {
+    return {
+      gridId: this.gridId,
+      rowId: this.rowId
+    };
+  };
+
+  return GridRowUnselected;
+
+})();
+
 Row = (function() {
   function Row(id, columns) {
     var columnId, columnValue;
@@ -223,14 +269,16 @@ RowSelectionService = (function() {
     if (!this.gridSelectionStatuses[gridId]) {
       this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
     }
-    return this.gridSelectionStatuses[gridId].select(rowId);
+    this.gridSelectionStatuses[gridId].select(rowId);
+    return DomainEvent.publish("GridRowSelected", new GridRowSelected(gridId, rowId));
   };
 
   RowSelectionService.prototype.unselect = function(gridId, rowId) {
     if (!this.gridSelectionStatuses[gridId]) {
       throw new Error('Invalid status trasition');
     }
-    return this.gridSelectionStatuses[gridId].unselect(rowId);
+    this.gridSelectionStatuses[gridId].unselect(rowId);
+    return DomainEvent.publish("GridRowUnSelected", new GridRowUnelected(gridId, rowId));
   };
 
   return RowSelectionService;

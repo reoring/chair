@@ -31,9 +31,17 @@
 DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
+DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
+DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
+
 # Application service
 applicationGridService = new GridService()
 applicationGridService.select('that_grid_id', 'that_row_id')
+
 
 # Domain logic example
 formaters =
@@ -44,10 +52,10 @@ grid = new Grid('id', [
     new Column('name', "Onamae", [new ColumnFormat(formaters.right), new ColumnFormat(formaters.bold)])
     new Column('age', "Nenrei")
 ])
+
 grid.append(new Row('line1', {name: "suin", age: 26}))
 grid.append(new Row('line2', {name: "reoring", age: 300}))
 grid.append(new Row('line3', {name: "nouphet", age: 30000}))
-
 
 
 </script>

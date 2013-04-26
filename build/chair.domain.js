@@ -260,7 +260,7 @@ RowSelectionService = (function() {
 
   RowSelectionService.prototype.unselectedAll = function(gridId) {
     if (!this.gridSelectionStatuses[gridId]) {
-      throw new Error('Invalid status trasition');
+      throw new Error('Invalid status transition');
     }
     return this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
   };
@@ -275,7 +275,7 @@ RowSelectionService = (function() {
 
   RowSelectionService.prototype.unselect = function(gridId, rowId) {
     if (!this.gridSelectionStatuses[gridId]) {
-      throw new Error('Invalid status trasition');
+      throw new Error('Invalid status transition');
     }
     this.gridSelectionStatuses[gridId].unselect(rowId);
     return DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, rowId));

@@ -1,5 +1,5 @@
 class ViewController
-	constructor: (@tableSelector, @header, @rowSelectedClass = 'row_selected') ->
+	constructor: (@grid, @tableSelector, @header, @rowSelectedClass = 'row_selected') ->
 		@table = new Table $(@tableSelector)
 
 		@applicationGridService = new GridService()
@@ -21,8 +21,11 @@ class ViewController
 		DomainEvent.subscribe 'GridRowUnselected', (event, eventName)=>
 			@table.removeClassFromRow event.rowId, @rowSelectedClass
 
-	selectAll: () ->
-		@applicationGridService.selectAll()
+	add: (id, row)->
+		@grid.append new Row(id, row)
 
-	unselectAll: () ->
-		@applicationGridService.UnselectAll()
+	selectAll: (gridId) ->
+		@applicationGridService.selectAll(gridId)
+
+	unselectAll: (gridId) ->
+		@applicationGridService.unselectAll(gridId)

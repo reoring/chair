@@ -1,9 +1,10 @@
 var ViewController;
 
 ViewController = (function() {
-  function ViewController(tableSelector, header, rowSelectedClass) {
+  function ViewController(grid, tableSelector, header, rowSelectedClass) {
     var _this = this;
 
+    this.grid = grid;
     this.tableSelector = tableSelector;
     this.header = header;
     this.rowSelectedClass = rowSelectedClass != null ? rowSelectedClass : 'row_selected';
@@ -27,6 +28,18 @@ ViewController = (function() {
       return _this.table.removeClassFromRow(event.rowId, _this.rowSelectedClass);
     });
   }
+
+  ViewController.prototype.add = function(id, row) {
+    return this.grid.append(new Row(id, row));
+  };
+
+  ViewController.prototype.selectAll = function(gridId) {
+    return this.applicationGridService.selectAll(gridId);
+  };
+
+  ViewController.prototype.unselectAll = function(gridId) {
+    return this.applicationGridService.unselectAll(gridId);
+  };
 
   return ViewController;
 

@@ -11,6 +11,14 @@ GridService = (function() {
     return DomainRegistry.rowSelectionService().unselect(gridId, rowId);
   };
 
+  GridService.prototype.selectAll = function(gridId) {
+    return DomainRegistry.rowSelectionService().selectAll(gridId);
+  };
+
+  GridService.prototype.unselectAll = function(gridId) {
+    return DomainRegistry.rowSelectionService().unselectAll(gridId);
+  };
+
   return GridService;
 
 })();

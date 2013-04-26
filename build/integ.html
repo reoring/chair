@@ -45,6 +45,14 @@
     </table>
 </div>
 
+<input type="text" name="name" />
+<input type="text" name="age" />
+<input id="add_button" type="button" value="追加" />
+
+<br/>
+<input id="select_all"   type="button" value="全選択" />
+<input id="unselect_all" type="button" value="全未選択" />
+
 <script type="text/coffeescript">
 
 DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
@@ -54,20 +62,35 @@ DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
 $ ->
-    viewController = new ViewController("#chair_table", ['name', 'age'])
+    formaters =
+        right: (html)-> return '<div class="pull-right">'+html+'</div>'
+        bold: (html)-> return '<strong>'+html+'</strong>'
 
-formaters =
-    right: (html)-> return '<div class="pull-right">'+html+'</div>'
-    bold: (html)-> return '<strong>'+html+'</strong>'
+    grid = new Grid('#chair_table', [
+        new Column('name', "Onamae", [new ColumnFormat(formaters.right),
+                                      new ColumnFormat(formaters.bold)])
+        new Column('age', "Nenrei")
+    ])
 
-grid = new Grid('id', [
-    new Column('name', "Onamae", [new ColumnFormat(formaters.right), new ColumnFormat(formaters.bold)])
-    new Column('age', "Nenrei")
-])
-grid.append(new Row('line1', {name: "suin", age: 26}))
-grid.append(new Row('line2', {name: "reoring", age: 300}))
-grid.append(new Row('line3', {name: "nouphet", age: 30000}))
-grid.append(new Row('line4', {name: "ok!", age: 1}))
+    viewController = new ViewController(grid, "#chair_table", ['name', 'age'])
+
+    $("#select_all").on "click", ->
+        viewController.selectAll("#chair_table")
+
+    $("#unselect_all").on "click", ->
+        viewController.unselectAll("#chair_table")
+
+    $("#add_button").on "click", ->
+        viewController.add $("input[name=name]").val(), {name: $("input[name=name]").val(), age: $("input[name=age]").val()}
+
+    grid.append(new Row('line1', {name: "suin", age: 26}))
+    grid.append(new Row('line2', {name: "reoring", age: 300}))
+    grid.append(new Row('line3', {name: "nouphet", age: 30000}))
+    grid.append(new Row('line4', {name: "ok!", age: 1}))
+
+
+
+
 
 # application service
 

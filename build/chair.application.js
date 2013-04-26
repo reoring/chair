@@ -19,6 +19,18 @@ GridService = (function() {
     return DomainRegistry.rowSelectionService().unselectAll(gridId);
   };
 
+  GridService.prototype.updateColumn = function(gridId, rowId, columnId, columnValue) {
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      return grid.updateColumn(rowId, columnId, columnValue);
+    });
+  };
+
   return GridService;
 
 })();

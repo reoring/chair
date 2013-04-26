@@ -7,7 +7,7 @@ class RowSelectionService
         DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
             throw new Error(error) if error
             return if grid is null
-            for row in grid.rows
+            for row in grid.rows()
                 DomainEvent.publish "GridRowSelected", new GridRowSelected(gridId, row.id)
 
 
@@ -18,7 +18,7 @@ class RowSelectionService
         DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
             throw new Error(error) if error
             return if grid is null
-            for row in grid.rows
+            for row in grid.rows()
                 DomainEvent.publish "GridRowUnselected", new GridRowUnselected(gridId, row.id)
 
     select: (gridId, rowId)->

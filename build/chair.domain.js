@@ -1,5 +1,6 @@
-var AllRowSelectedStatus, AllRowUnselectedStatus, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, Row, RowSelectionService,
-  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+var AllRowSelectedStatus, AllRowUnselectedStatus, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, Row, RowRepositoryInterface, RowSelectionService,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+  __hasProp = {}.hasOwnProperty;
 
 AllRowSelectedStatus = (function() {
   function AllRowSelectedStatus() {
@@ -92,6 +93,27 @@ ColumnFormat = (function() {
 
 })();
 
+ColumnUpdated = (function() {
+  function ColumnUpdated(gridId, rowId, columnId, columnValue) {
+    this.gridId = gridId;
+    this.rowId = rowId;
+    this.columnId = columnId;
+    this.columnValue = columnValue;
+  }
+
+  ColumnUpdated.prototype.serialize = function() {
+    return {
+      gridId: this.gridId,
+      rowId: this.rowId,
+      columnId: this.columnId,
+      columnValue: this.columnValue
+    };
+  };
+
+  return ColumnUpdated;
+
+})();
+
 DomainEvent = {
   channels: [],
   publish: function(eventName, event) {
@@ -134,8 +156,7 @@ Grid = (function() {
     var column, _i, _len;
 
     this.id = id;
-    this.rows = [];
-    this.rowIds = [];
+    this._rows = {};
     this.columns = [];
     for (_i = 0, _len = columns.length; _i < _len; _i++) {
       column = columns[_i];
@@ -144,14 +165,50 @@ Grid = (function() {
   }
 
   Grid.prototype.append = function(row) {
-    var _ref;
-
-    if (_ref = row.id, __indexOf.call(this.rowIds, _ref) >= 0) {
+    if (this._hasRow(row.id)) {
       throw new Error("Row(id:" + row.id + ") already exists in the Grid(id:" + this.id + ")");
     }
-    this.rowIds.push(row.id);
-    this.rows.push(row);
+    this._setRow(row);
     return DomainEvent.publish("GridRowAppended", new GridRowAppended(this.id, row.id, row.columns));
+  };
+
+  Grid.prototype.updateColumn = function(rowId, columnId, columnValue) {
+    if (this._hasRow(rowId)) {
+      return this._getRow(rowId).updateColumn(columnId, columnValue, this.id);
+    }
+  };
+
+  Grid.prototype.rows = function() {
+    var key, row;
+
+    return (function() {
+      var _ref, _results;
+
+      _ref = this._rows;
+      _results = [];
+      for (key in _ref) {
+        if (!__hasProp.call(_ref, key)) continue;
+        row = _ref[key];
+        _results.push(row);
+      }
+      return _results;
+    }).call(this);
+  };
+
+  Grid.prototype._hasRow = function(rowId) {
+    if (this._rows[rowId]) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  Grid.prototype._getRow = function(rowId) {
+    return this._rows[rowId];
+  };
+
+  Grid.prototype._setRow = function(row) {
+    return this._rows[row.id] = row;
   };
 
   return Grid;
@@ -266,12 +323,34 @@ Row = (function() {
     this.id = id;
     this.columns = {};
     for (columnId in columns) {
+      if (!__hasProp.call(columns, columnId)) continue;
       columnValue = columns[columnId];
       this.columns[columnId] = "" + columnValue;
     }
   }
 
+  Row.prototype.updateColumn = function(columnId, columnValue, gridId) {
+    if (this.columns[columnId]) {
+      this.columns[columnId] = columnValue;
+      return DomainEvent.publish('ColumnUpdated', new ColumnUpdated(gridId, this.id, columnId, columnValue));
+    }
+  };
+
   return Row;
+
+})();
+
+RowRepositoryInterface = (function() {
+  function RowRepositoryInterface() {}
+
+  RowRepositoryInterface.prototype.rowOfId = function(rowId, callback) {
+    if (callback == null) {
+      callback = function(error, row) {};
+    }
+    throw "This method should be implemented by subclass";
+  };
+
+  return RowRepositoryInterface;
 
 })();
 
@@ -291,7 +370,7 @@ RowSelectionService = (function() {
       if (grid === null) {
         return;
       }
-      _ref = grid.rows;
+      _ref = grid.rows();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         row = _ref[_i];
@@ -315,7 +394,7 @@ RowSelectionService = (function() {
       if (grid === null) {
         return;
       }
-      _ref = grid.rows;
+      _ref = grid.rows();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         row = _ref[_i];

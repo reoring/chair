@@ -10,3 +10,9 @@ class GridService
 
     unselectAll: (gridId)->
     	DomainRegistry.rowSelectionService().unselectAll(gridId)
+
+    updateColumn: (gridId, rowId, columnId, columnValue)->
+        DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
+            throw new Error(error) if error
+            return if grid is null
+            grid.updateColumn(rowId, columnId, columnValue)

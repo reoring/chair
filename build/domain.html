@@ -27,8 +27,9 @@
 </table>
 
 <script type="text/coffeescript">
-
+#
 # Event subscription
+#
 DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
@@ -38,13 +39,12 @@ DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
 DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
+DomainEvent.subscribe 'ColumnUpdated', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
-# Application service
-applicationGridService = new GridService()
-applicationGridService.select('that_grid_id', 'that_row_id')
-
-
+#
 # Domain logic example
+#
 formaters =
     right: (html)-> return '<div class="pull-right">'+html+'</div>'
     bold: (html)-> return '<strong>'+html+'</strong>'
@@ -60,6 +60,13 @@ grid.append(new Row('line3', {name: "nouphet", age: 30000}))
 
 DomainRegistry.gridRepository().add(grid)
 
+#
+# Grid manipulation in client code
+#
+applicationGridService = new GridService()
+applicationGridService.select('that_grid_id', 'that_row_id')
+applicationGridService.updateColumn('that_grid_id', 'line1', 'name', 'suinyeze')
+applicationGridService.updateColumn('that_grid_id', 'line1', 'age', '27')
 applicationGridService.unselectAll('that_grid_id')
 </script>
 

@@ -8,9 +8,7 @@ class Grid
 
     append: (row)->
         throw new Error("Row(id:#{row.id}) already exists in the Grid(id:#{@id})") if @_hasRow(row.id)
-        @_setRow(row)
-
-        DomainEvent.publish("GridRowAppended", new GridRowAppended(@id, row.id, row.columns))
+        @_addRow(row)
 
     updateColumn: (rowId, columnId, columnValue)->
         if @_hasRow(rowId)
@@ -18,6 +16,11 @@ class Grid
 
     rows: ()->
         return (row for own key, row of @_rows)
+
+    removeRow: (rowId)->
+        if @_hasRow(rowId)
+            @_getRow(rowId).remove()
+            delete @_rows[rowId]
 
     _hasRow: (rowId)->
         if @_rows[rowId]
@@ -28,5 +31,7 @@ class Grid
     _getRow: (rowId)->
         return @_rows[rowId]
 
-    _setRow: (row)->
+    _addRow: (row)->
         @_rows[row.id] = row
+        row.gridId = @id
+        DomainEvent.publish("GridRowAppended", new GridRowAppended(@id, row.id, row.columns))

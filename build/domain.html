@@ -39,7 +39,10 @@ DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
 DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
-DomainEvent.subscribe 'ColumnUpdated', (event, eventName)->
+DomainEvent.subscribe 'GridColumnUpdated', (event, eventName)->
+    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
+DomainEvent.subscribe 'GridRowRemoved', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
 #
@@ -68,6 +71,8 @@ applicationGridService.select('that_grid_id', 'that_row_id')
 applicationGridService.updateColumn('that_grid_id', 'line1', 'name', 'suinyeze')
 applicationGridService.updateColumn('that_grid_id', 'line1', 'age', '27')
 applicationGridService.unselectAll('that_grid_id')
+applicationGridService.removeRow('that_grid_id', 'line1')
+applicationGridService.removeRow('that_grid_id', 'line2')
 </script>
 
 </body>

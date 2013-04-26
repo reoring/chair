@@ -16,3 +16,9 @@ class GridService
             throw new Error(error) if error
             return if grid is null
             grid.updateColumn(rowId, columnId, columnValue)
+
+    removeRow: (gridId, rowId)->
+        DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
+            throw new Error(error) if error
+            return if grid is null
+            grid.removeRow(rowId)

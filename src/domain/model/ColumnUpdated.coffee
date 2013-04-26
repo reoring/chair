@@ -1,4 +1,4 @@
-class ColumnUpdated
+class GridColumnUpdated
     constructor: (@gridId, @rowId, @columnId, @columnValue)->
 
     serialize: ()->

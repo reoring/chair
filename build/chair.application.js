@@ -31,6 +31,18 @@ GridService = (function() {
     });
   };
 
+  GridService.prototype.removeRow = function(gridId, rowId) {
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      return grid.removeRow(rowId);
+    });
+  };
+
   return GridService;
 
 })();

@@ -1,4 +1,4 @@
-var AjaxDataSource, AllRowSelectedStatus, AllRowUnselectedStatus, ArrayDataSource, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, GridService, Row, RowRepositoryInterface, RowSelectionService, Table, ViewController,
+var AjaxDataSource, AllRowSelectedStatus, AllRowUnselectedStatus, ArrayDataSource, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridColumnUpdated, GridRepository, GridRowAppended, GridRowRemoved, GridRowSelected, GridRowUnselected, GridService, Row, RowRepositoryInterface, RowSelectionService, Table, ViewController,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
   __hasProp = {}.hasOwnProperty;
 
@@ -93,15 +93,15 @@ ColumnFormat = (function() {
 
 })();
 
-ColumnUpdated = (function() {
-  function ColumnUpdated(gridId, rowId, columnId, columnValue) {
+GridColumnUpdated = (function() {
+  function GridColumnUpdated(gridId, rowId, columnId, columnValue) {
     this.gridId = gridId;
     this.rowId = rowId;
     this.columnId = columnId;
     this.columnValue = columnValue;
   }
 
-  ColumnUpdated.prototype.serialize = function() {
+  GridColumnUpdated.prototype.serialize = function() {
     return {
       gridId: this.gridId,
       rowId: this.rowId,
@@ -110,7 +110,7 @@ ColumnUpdated = (function() {
     };
   };
 
-  return ColumnUpdated;
+  return GridColumnUpdated;
 
 })();
 
@@ -168,8 +168,7 @@ Grid = (function() {
     if (this._hasRow(row.id)) {
       throw new Error("Row(id:" + row.id + ") already exists in the Grid(id:" + this.id + ")");
     }
-    this._setRow(row);
-    return DomainEvent.publish("GridRowAppended", new GridRowAppended(this.id, row.id, row.columns));
+    return this._addRow(row);
   };
 
   Grid.prototype.updateColumn = function(rowId, columnId, columnValue) {
@@ -195,6 +194,13 @@ Grid = (function() {
     }).call(this);
   };
 
+  Grid.prototype.removeRow = function(rowId) {
+    if (this._hasRow(rowId)) {
+      this._getRow(rowId).remove();
+      return delete this._rows[rowId];
+    }
+  };
+
   Grid.prototype._hasRow = function(rowId) {
     if (this._rows[rowId]) {
       return true;
@@ -207,8 +213,10 @@ Grid = (function() {
     return this._rows[rowId];
   };
 
-  Grid.prototype._setRow = function(row) {
-    return this._rows[row.id] = row;
+  Grid.prototype._addRow = function(row) {
+    this._rows[row.id] = row;
+    row.gridId = this.id;
+    return DomainEvent.publish("GridRowAppended", new GridRowAppended(this.id, row.id, row.columns));
   };
 
   return Grid;
@@ -270,6 +278,29 @@ GridRowAppended = (function() {
 
 })();
 
+GridRowRemoved = (function() {
+  function GridRowRemoved(gridId, rowId) {
+    this.gridId = gridId;
+    this.rowId = rowId;
+    if (!this.gridId) {
+      throw new Error("no grid id specified");
+    }
+    if (!this.rowId) {
+      throw new Error("no row id specified");
+    }
+  }
+
+  GridRowRemoved.prototype.serialize = function() {
+    return {
+      gridId: this.gridId,
+      rowId: this.rowId
+    };
+  };
+
+  return GridRowRemoved;
+
+})();
+
 GridRowSelected = (function() {
   function GridRowSelected(gridId, rowId) {
     this.gridId = gridId;
@@ -327,13 +358,20 @@ Row = (function() {
       columnValue = columns[columnId];
       this.columns[columnId] = "" + columnValue;
     }
+    this.deleted = false;
+    this.gridId = null;
   }
 
-  Row.prototype.updateColumn = function(columnId, columnValue, gridId) {
+  Row.prototype.updateColumn = function(columnId, columnValue) {
     if (this.columns[columnId]) {
       this.columns[columnId] = columnValue;
-      return DomainEvent.publish('ColumnUpdated', new ColumnUpdated(gridId, this.id, columnId, columnValue));
+      return DomainEvent.publish('GridColumnUpdated', new GridColumnUpdated(this.gridId, this.id, columnId, columnValue));
     }
+  };
+
+  Row.prototype.remove = function() {
+    this.deleted = true;
+    return DomainEvent.publish('GridRowRemoved', new GridRowRemoved(this.gridId, this.id));
   };
 
   return Row;
@@ -452,6 +490,18 @@ GridService = (function() {
         return;
       }
       return grid.updateColumn(rowId, columnId, columnValue);
+    });
+  };
+
+  GridService.prototype.removeRow = function(gridId, rowId) {
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      return grid.removeRow(rowId);
     });
   };
 

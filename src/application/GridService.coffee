@@ -4,3 +4,9 @@ class GridService
 
     unselect: (gridId, rowId)->
         DomainRegistry.rowSelectionService().unselect(gridId, rowId)
+
+    selectAll: (gridId)->
+    	DomainRegistry.rowSelectionService().selectAll(gridId)
+
+    unselectAll: (gridId)->
+    	DomainRegistry.rowSelectionService().unselectAll(gridId)

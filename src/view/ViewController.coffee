@@ -20,3 +20,9 @@ class ViewController
 
 		DomainEvent.subscribe 'GridRowUnselected', (event, eventName)=>
 			@table.removeClassFromRow event.rowId, @rowSelectedClass
+
+	selectAll: () ->
+		@applicationGridService.selectAll()
+
+	unselectAll: () ->
+		@applicationGridService.UnselectAll()

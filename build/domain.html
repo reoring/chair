@@ -27,6 +27,7 @@
 </table>
 
 <script type="text/coffeescript">
+
 # Event subscription
 DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
@@ -48,7 +49,7 @@ formaters =
     right: (html)-> return '<div class="pull-right">'+html+'</div>'
     bold: (html)-> return '<strong>'+html+'</strong>'
 
-grid = new Grid('id', [
+grid = new Grid('that_grid_id', [
     new Column('name', "Onamae", [new ColumnFormat(formaters.right), new ColumnFormat(formaters.bold)])
     new Column('age', "Nenrei")
 ])
@@ -57,7 +58,9 @@ grid.append(new Row('line1', {name: "suin", age: 26}))
 grid.append(new Row('line2', {name: "reoring", age: 300}))
 grid.append(new Row('line3', {name: "nouphet", age: 30000}))
 
+DomainRegistry.gridRepository().add(grid)
 
+applicationGridService.unselectAll('that_grid_id')
 </script>
 
 </body>

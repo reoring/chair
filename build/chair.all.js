@@ -1,7 +1,5 @@
-var AjaxDataSource, AllRowSelectedStatus, AllRowUnselectedStatus, ArrayDataSource, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, GridService, InMemoryGridRepository, Row, RowSelectionService, Table, ViewController,
-  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+var AjaxDataSource, AllRowSelectedStatus, AllRowUnselectedStatus, ArrayDataSource, Column, ColumnFormat, DomainEvent, DomainRegistry, Grid, GridRepository, GridRowAppended, GridRowSelected, GridRowUnselected, GridService, Row, RowSelectionService, Table, ViewController,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 AllRowSelectedStatus = (function() {
   function AllRowSelectedStatus() {
@@ -119,8 +117,15 @@ DomainEvent = {
 };
 
 DomainRegistry = {
+  _gridRepository: null,
   rowSelectionService: function() {
     return new RowSelectionService();
+  },
+  gridRepository: function() {
+    if (this._gridRepository === null) {
+      this._gridRepository = new GridRepository();
+    }
+    return this._gridRepository;
   }
 };
 
@@ -154,10 +159,29 @@ Grid = (function() {
 })();
 
 GridRepository = (function() {
-  function GridRepository() {}
+  function GridRepository(grids) {
+    var grid, _i, _len;
+
+    if (grids == null) {
+      grids = [];
+    }
+    this.grids = {};
+    for (_i = 0, _len = grids.length; _i < _len; _i++) {
+      grid = grids[_i];
+      this.add(grid);
+    }
+  }
 
   GridRepository.prototype.gridOfId = function(id, callback) {
-    throw "must be implemented by subclass";
+    if (!this.grids[id]) {
+      callback(null, null);
+      return;
+    }
+    return callback(null, this.grids[id]);
+  };
+
+  GridRepository.prototype.add = function(grid) {
+    return this.grids[grid.id] = grid;
   };
 
   return GridRepository;
@@ -257,14 +281,48 @@ RowSelectionService = (function() {
   RowSelectionService.prototype.gridSelectionStatuses = [];
 
   RowSelectionService.prototype.selectAll = function(gridId) {
-    return this.gridSelectionStatuses[gridId] = new AllRowSelectedStatus();
+    this.gridSelectionStatuses[gridId] = new AllRowSelectedStatus();
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      var row, _i, _len, _ref, _results;
+
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      _ref = grid.rows;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        _results.push(DomainEvent.publish("GridRowSelected", new GridRowSelected(gridId, row.id)));
+      }
+      return _results;
+    });
   };
 
-  RowSelectionService.prototype.unselectedAll = function(gridId) {
+  RowSelectionService.prototype.unselectAll = function(gridId) {
     if (!this.gridSelectionStatuses[gridId]) {
-      throw new Error('Invalid status trasition');
+      throw new Error('Invalid status transition');
     }
-    return this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
+    this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      var row, _i, _len, _ref, _results;
+
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      _ref = grid.rows;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        _results.push(DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, row.id)));
+      }
+      return _results;
+    });
   };
 
   RowSelectionService.prototype.select = function(gridId, rowId) {
@@ -277,7 +335,7 @@ RowSelectionService = (function() {
 
   RowSelectionService.prototype.unselect = function(gridId, rowId) {
     if (!this.gridSelectionStatuses[gridId]) {
-      throw new Error('Invalid status trasition');
+      throw new Error('Invalid status transition');
     }
     this.gridSelectionStatuses[gridId].unselect(rowId);
     return DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, rowId));
@@ -296,6 +354,14 @@ GridService = (function() {
 
   GridService.prototype.unselect = function(gridId, rowId) {
     return DomainRegistry.rowSelectionService().unselect(gridId, rowId);
+  };
+
+  GridService.prototype.selectAll = function(gridId) {
+    return DomainRegistry.rowSelectionService().selectAll(gridId);
+  };
+
+  GridService.prototype.unselectAll = function(gridId) {
+    return DomainRegistry.rowSelectionService().unselectAll(gridId);
   };
 
   return GridService;
@@ -474,25 +540,6 @@ ArrayDataSource = (function() {
 
 })();
 
-InMemoryGridRepository = (function(_super) {
-  __extends(InMemoryGridRepository, _super);
-
-  function InMemoryGridRepository() {
-    this.grids = {};
-  }
-
-  InMemoryGridRepository.prototype.gridOfId = function(id, callback) {
-    if (__indexOf.call(this.grids, id) < 0) {
-      return callback(null, "grid not found of id(" + id + ")");
-    } else {
-      return callback(this.grids[id], null);
-    }
-  };
-
-  return InMemoryGridRepository;
-
-})(GridRepository);
-
 ViewController = (function() {
   function ViewController(tableSelector, header, rowSelectedClass) {
     var _this = this;
@@ -520,6 +567,14 @@ ViewController = (function() {
       return _this.table.removeClassFromRow(event.rowId, _this.rowSelectedClass);
     });
   }
+
+  ViewController.prototype.selectAll = function() {
+    return this.applicationGridService.selectAll();
+  };
+
+  ViewController.prototype.unselectAll = function() {
+    return this.applicationGridService.UnselectAll();
+  };
 
   return ViewController;
 

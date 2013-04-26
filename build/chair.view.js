@@ -28,6 +28,14 @@ ViewController = (function() {
     });
   }
 
+  ViewController.prototype.selectAll = function() {
+    return this.applicationGridService.selectAll();
+  };
+
+  ViewController.prototype.unselectAll = function() {
+    return this.applicationGridService.UnselectAll();
+  };
+
   return ViewController;
 
 })();

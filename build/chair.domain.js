@@ -117,8 +117,15 @@ DomainEvent = {
 };
 
 DomainRegistry = {
+  _gridRepository: null,
   rowSelectionService: function() {
     return new RowSelectionService();
+  },
+  gridRepository: function() {
+    if (this._gridRepository === null) {
+      this._gridRepository = new GridRepository();
+    }
+    return this._gridRepository;
   }
 };
 
@@ -152,10 +159,29 @@ Grid = (function() {
 })();
 
 GridRepository = (function() {
-  function GridRepository() {}
+  function GridRepository(grids) {
+    var grid, _i, _len;
+
+    if (grids == null) {
+      grids = [];
+    }
+    this.grids = {};
+    for (_i = 0, _len = grids.length; _i < _len; _i++) {
+      grid = grids[_i];
+      this.add(grid);
+    }
+  }
 
   GridRepository.prototype.gridOfId = function(id, callback) {
-    throw "must be implemented by subclass";
+    if (!this.grids[id]) {
+      callback(null, null);
+      return;
+    }
+    return callback(null, this.grids[id]);
+  };
+
+  GridRepository.prototype.add = function(grid) {
+    return this.grids[grid.id] = grid;
   };
 
   return GridRepository;
@@ -255,14 +281,48 @@ RowSelectionService = (function() {
   RowSelectionService.prototype.gridSelectionStatuses = [];
 
   RowSelectionService.prototype.selectAll = function(gridId) {
-    return this.gridSelectionStatuses[gridId] = new AllRowSelectedStatus();
+    this.gridSelectionStatuses[gridId] = new AllRowSelectedStatus();
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      var row, _i, _len, _ref, _results;
+
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      _ref = grid.rows;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        _results.push(DomainEvent.publish("GridRowSelected", new GridRowSelected(gridId, row.id)));
+      }
+      return _results;
+    });
   };
 
-  RowSelectionService.prototype.unselectedAll = function(gridId) {
+  RowSelectionService.prototype.unselectAll = function(gridId) {
     if (!this.gridSelectionStatuses[gridId]) {
-      throw new Error('Invalid status trasition');
+      throw new Error('Invalid status transition');
     }
-    return this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
+    this.gridSelectionStatuses[gridId] = new AllRowUnselectedStatus();
+    return DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      var row, _i, _len, _ref, _results;
+
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return;
+      }
+      _ref = grid.rows;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        _results.push(DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, row.id)));
+      }
+      return _results;
+    });
   };
 
   RowSelectionService.prototype.select = function(gridId, rowId) {
@@ -275,7 +335,7 @@ RowSelectionService = (function() {
 
   RowSelectionService.prototype.unselect = function(gridId, rowId) {
     if (!this.gridSelectionStatuses[gridId]) {
-      throw new Error('Invalid status trasition');
+      throw new Error('Invalid status transition');
     }
     this.gridSelectionStatuses[gridId].unselect(rowId);
     return DomainEvent.publish("GridRowUnselected", new GridRowUnselected(gridId, rowId));

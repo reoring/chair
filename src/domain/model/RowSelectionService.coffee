@@ -4,9 +4,22 @@ class RowSelectionService
     selectAll: (gridId)->
         @gridSelectionStatuses[gridId] = new AllRowSelectedStatus()
 
-    unselectedAll: (gridId)->
+        DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
+            throw new Error(error) if error
+            return if grid is null
+            for row in grid.rows
+                DomainEvent.publish "GridRowSelected", new GridRowSelected(gridId, row.id)
+
+
+    unselectAll: (gridId)->
         throw new Error('Invalid status transition') unless @gridSelectionStatuses[gridId]
         @gridSelectionStatuses[gridId] = new AllRowUnselectedStatus()
+
+        DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
+            throw new Error(error) if error
+            return if grid is null
+            for row in grid.rows
+                DomainEvent.publish "GridRowUnselected", new GridRowUnselected(gridId, row.id)
 
     select: (gridId, rowId)->
         unless @gridSelectionStatuses[gridId]

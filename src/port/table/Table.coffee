@@ -10,7 +10,10 @@ class Table
         newTr = $('<tr></tr>')
 
         for column in @columns
-            newTr.append $('<th></th>').append $('<span></span>').append column
+            newTr.append $('<th></th>').attr('data-column-id', column.id)
+                                       .append $('<span></span>')
+                                       .append column.title
+
             @table.find('thead').append newTr
 
     get: (index) ->
@@ -59,7 +62,9 @@ class Table
 
     createRowColumn: (column, value) ->
         td = $('<td></td>')
-        td.addClass(column).attr('data-column', column)
+        td.addClass(column).attr('data-column', column.id)
+        td.attr('data-column-editable', column.editable)
+        td.addClass('disabled') if column.editable == false
         td.append $('<span></span>').append value
 
     addClassToRow: (id, className) ->
@@ -94,16 +99,61 @@ class Table
     toRowEdit: (rowId) ->
         row = @findRow rowId
 
-
-    toCellEdit: (rowId, columnName) ->
+    toCellEdit: (rowId, columnId) ->
         row = @findRow rowId
-        column = row.find("td[class=" + columnName + "]")
+        column = row.find("td[data-column=" + columnId + "]")
 
-        @_editCell column
+        @_editCell column if @isCellEditable column
+
+    isCellEditable: (column) ->
+        column.attr('data-column-editable') == 'true'
+
+    _editPreviousCell: (column) ->
+        column = @searchEditableColumnToBackward column
+        return false if column == false
+        @_editCell column if @isCellEditable column
+
+    searchEditableColumnToBackward: (column, depth = 1) ->
+        return column if @isCellEditable column
+
+        return false if depth > 20 # Give up searching editable column
+
+        prevColumn = column.prev()
+
+        if prevColumn.length == 0
+            parent = column.parent().prev()
+            numberOfChildren = parent.children().length
+            prevColumn = $ parent.children()[numberOfChildren - 1]
+
+        return prevColumn if @isCellEditable prevColumn
+        
+        @searchEditableColumnToBackward prevColumn, depth + 1
+
+    searchEditableColumnToForward: (column, depth = 1) ->
+        return column if @isCellEditable column
+
+        return false if depth > 20 # Give up searching editable column
+
+        nextColumn = column.next()
+
+        if nextColumn.length == 0
+            nextRow = column.parent().next()
+            nextColumn = $ nextRow.children()[0]
+
+        return nextColumn if @isCellEditable nextColumn
+        
+        @searchEditableColumnToForward nextColumn, depth + 1
+
+    _editNextCell: (column) ->
+        column = @searchEditableColumnToForward column
+        return false if column == false
+        @_editCell column if @isCellEditable column
 
     _editCell: (column) ->
+        return false if column == false
+
         input = $('<input type="text"></input>').val(column.text())
-        
+
         TableUIHelper.fitInputToCell input, column
         column.find("span").replaceWith(input)
         input.select()

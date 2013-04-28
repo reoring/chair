@@ -31,8 +31,8 @@
         -webkit-user-select: none;
     }
 
-    .table td.name {
-        background: #cfc;
+    .table td.disabled {
+        background: #eee;
     }
 
     table.table tr input {
@@ -50,7 +50,10 @@
 
 <div class="container">
     <table id="chair_table" class="table">
-        <colgroup><col style="width: 324px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
 
         <thead></thead>
         <tbody></tbody>
@@ -67,12 +70,6 @@
 
 <script type="text/coffeescript">
 
-DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
-DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
 $ ->
     formaters =
         right: (html)-> return '<div class="pull-right">'+html+'</div>'
@@ -86,7 +83,13 @@ $ ->
 
     DomainRegistry.gridRepository().add(grid)
 
-    viewController = new ViewController(grid, "#chair_table", ['name', 'age'])
+    viewController = new ViewController(grid, "#chair_table",
+                                        [{id: 'name',  title: 'Name',  editable: true}
+                                         {id: 'age',   title: 'Age',   editable: true}
+                                         {id: 'flag',  title: 'Flag',  editable: false}
+                                         {id: 'flag2', title: 'Flag2', editable: true}
+                                         {id: 'flag3', title: 'Flag3', editable: false}
+                                         ])
 
     $("#select_all").on "click", ->
         viewController.selectAll("#chair_table")
@@ -101,10 +104,10 @@ $ ->
                                 age: $("input[name=age]").val()
                             }
 
-    grid.append(new Row('line1', {name: "suin", age: 26}))
-    grid.append(new Row('line2', {name: "reoring", age: 300}))
-    grid.append(new Row('line3', {name: "nouphet", age: 30000}))
-    grid.append(new Row('line4', {name: "ok!", age: 1}))
+    grid.append(new Row('line1', {name: "suin", age: 26, flag: true, flag2: 'a', falg3: 1}))
+    grid.append(new Row('line2', {name: "reoring", age: 300, flag: false, flag2: 'b', flag3: 2}))
+    grid.append(new Row('line3', {name: "nouphet", age: 30000, falg: true, flag2: 'c', flag3: 3}))
+    grid.append(new Row('line4', {name: "ok!", age: 1, flag: false, flag2: 'd', flag3: 4}))
 
 
 # application service

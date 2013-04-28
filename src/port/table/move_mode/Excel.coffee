@@ -7,9 +7,9 @@ class ExcelMoveMode
 				input.replaceWith $('<span></span>').text input.val()
 				
 				if event.shiftKey == true
-					table._editPreviousCell $ column.prev()
+					table._editPreviousCell column
 				else
-					table._editNextCell $ column.next()
+					table._editNextCell column
 
 			if event.which == 13 # enter
 				input.replaceWith $('<span></span>').text input.val()

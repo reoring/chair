@@ -114,33 +114,31 @@ class Table
         @_editCell column if @isCellEditable column
 
     searchEditableColumnToBackward: (column, depth = 1) ->
-        return column if @isCellEditable column
-
         return false if depth > 20 # Give up searching editable column
 
         prevColumn = column.prev()
+
+        return prevColumn if @isCellEditable prevColumn
 
         if prevColumn.length == 0
             parent = column.parent().prev()
             numberOfChildren = parent.children().length
             prevColumn = $ parent.children()[numberOfChildren - 1]
+            return prevColumn if @isCellEditable prevColumn
 
-        return prevColumn if @isCellEditable prevColumn
-        
         @searchEditableColumnToBackward prevColumn, depth + 1
 
     searchEditableColumnToForward: (column, depth = 1) ->
-        return column if @isCellEditable column
-
         return false if depth > 20 # Give up searching editable column
 
         nextColumn = column.next()
 
+        return nextColumn if @isCellEditable nextColumn
+
         if nextColumn.length == 0
             nextRow = column.parent().next()
             nextColumn = $ nextRow.children()[0]
-
-        return nextColumn if @isCellEditable nextColumn
+            return nextColumn if @isCellEditable nextColumn
         
         @searchEditableColumnToForward nextColumn, depth + 1
 

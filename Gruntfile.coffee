@@ -12,12 +12,13 @@ module.exports = (grunt) ->
 
                 files:
                     "build/chair.js": ["src/*.coffee"]
-                    "build/table.js": ["src/port/table.coffee"]
+                    "build/table.js": ["src/port/table/*.coffee", "src/port/table/move_mode/*.coffee"]
                     "build/datasource.js": ["src/infrastructure/*.coffee"]
                     "build/chair.all.js": ["src/*.coffee",
                                            "src/domain/model/*.coffee",
                                            "src/application/*.coffee",
-                                           "src/port/*.coffee",
+                                           "src/port/table/*.coffee",
+                                           "src/port/table/move_mode/*.coffee",
                                            "src/infrastructure/*.coffee",
                                            "src/view/*.coffee"]
  

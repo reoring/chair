@@ -8,10 +8,12 @@
 
     <script type="text/javascript" src="jquery-2.0.0.min.js"></script>
     <script type="text/javascript" src="coffee-script.js"></script>
-    <script type="text/javascript" src="chair.all.min.js"></script>
+    <script type="text/javascript" src="chair.all.js"></script>
     <link href="bootstrap-combined.min.css" rel="stylesheet">
 
     <style type="text/css">
+
+
     tr.row_selected {
         background: #ffc;
     }
@@ -25,12 +27,20 @@
     }
 
     .table td {
-        border-right: 1px solid #ddd;
+        /* border-right: 1px solid #ddd; */
         -webkit-user-select: none;
     }
 
     .table td.name {
         background: #cfc;
+    }
+
+    table.table tr input {
+        border: 1px solid #ddd;
+        -webkit-border-radius: 0;
+        border-radius: 0;
+        padding: 0;
+        border: 0;
     }
 
     </style>
@@ -40,6 +50,8 @@
 
 <div class="container">
     <table id="chair_table" class="table">
+        <colgroup><col style="width: 324px;"></colgroup>
+
         <thead></thead>
         <tbody></tbody>
     </table>
@@ -72,6 +84,8 @@ $ ->
         new Column('age', "Nenrei")
     ])
 
+    DomainRegistry.gridRepository().add(grid)
+
     viewController = new ViewController(grid, "#chair_table", ['name', 'age'])
 
     $("#select_all").on "click", ->
@@ -81,15 +95,16 @@ $ ->
         viewController.unselectAll("#chair_table")
 
     $("#add_button").on "click", ->
-        viewController.add $("input[name=name]").val(), {name: $("input[name=name]").val(), age: $("input[name=age]").val()}
+        viewController.add $("input[name=name]").val(),
+                            {
+                                name: $("input[name=name]").val(),
+                                age: $("input[name=age]").val()
+                            }
 
     grid.append(new Row('line1', {name: "suin", age: 26}))
     grid.append(new Row('line2', {name: "reoring", age: 300}))
     grid.append(new Row('line3', {name: "nouphet", age: 30000}))
     grid.append(new Row('line4', {name: "ok!", age: 1}))
-
-
-
 
 
 # application service

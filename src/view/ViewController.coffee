@@ -11,7 +11,13 @@ class ViewController
 				@applicationGridService.unselect @tableSelector, id
 			else
 				@applicationGridService.select @tableSelector, id
-			
+
+
+		@table.listenCellEvent 'click', (rowId, element) =>
+			columnName = element.attr('data-column')
+			@table.toCellEdit rowId, columnName
+
+
 		DomainEvent.subscribe 'GridRowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId
 

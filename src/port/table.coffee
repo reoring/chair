@@ -56,7 +56,9 @@ class Table
         @table.find('tbody').append tr
 
     createRowColumn: (column, value) ->
-        $('<td></td>').addClass(column).append $('<span></span>').append value
+        td = $('<td></td>')
+        td.addClass(column).attr('data-column', column)
+        td.append $('<span></span>').append value
 
     addClassToRow: (id, className) ->
         row = @findRow(id)
@@ -87,6 +89,60 @@ class Table
             id = $(this).attr('data-id')
             callback id, $(this)
 
+    toRowEdit: (rowId) ->
+        row = @findRow rowId
+
+    _editCell: (column) ->
+        input = $('<input type="text"></input>').val(column.text())
+
+        paddingLeft   = parseInt(column.css('paddingLeft'), 10)
+        paddingRight  = parseInt(column.css('paddingRight'), 10)
+        paddingTop    = parseInt(column.css('paddingTop'), 10)
+        paddingBottom = parseInt(column.css('paddingBottom'), 10)
+
+        borderLeft   = parseInt(column.css('borderLeft'), 10)
+        borderRight  = parseInt(column.css('borderRight'), 10)
+        borderTop    = parseInt(column.css('borderTop'), 10)
+        borderBottom = parseInt(column.css('borderBottom'), 10)
+
+        ULTRA_COSMIC_CONST_NUMBER = 2
+
+        input.css('marginLeft',   paddingLeft * -1)
+        input.css('marginRight',  paddingRight * -1)
+        input.css('marginTop',    (paddingTop + borderTop + ULTRA_COSMIC_CONST_NUMBER) * -1)
+        input.css('marginBottom', paddingBottom * -1)
+
+        input.width(column.width() + paddingLeft + paddingRight)
+        input.height(column.height() + paddingTop + paddingBottom + borderTop)
+
+        column.find("span").replaceWith(input)
+
+        input.select()
+
+        input.on 'keypress', (event) =>
+            if event.which == 13
+                input.replaceWith $('<span></span>').text input.val()
+
+                if column.next().length == 0
+                    @_editCell $(column.parent().next().find('td')[0])
+                else
+                    @_editCell column.next()
+
+        input.on 'blur', =>
+            input.replaceWith $('<span></span>').text input.val()
+
+
+    toCellEdit: (rowId, columnName) ->
+        row = @findRow rowId
+        column = row.find("td[class=" + columnName + "]")
+
+        @_editCell column
+
+
+    listenCellEvent: (eventName, callback) ->
+        @table.on eventName, 'td', ->
+            id = $(this).parents('tr').attr('data-id')
+            callback id, $(this)
 
     listenTextEvent: (eventName, callback) ->
         @table.find('span').on eventName, ->

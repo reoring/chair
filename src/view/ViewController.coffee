@@ -1,22 +1,11 @@
 class ViewController
-	constructor: (@grid, @tableSelector, @header, @rowSelectedClass = 'row_selected') ->
-		@table = new Table $(@tableSelector)
+	constructor: (@grid, @tableSelector, @header, @rowSelectedClass = 'row_selected', moveModeName) ->
+		moveMode = MoveModeFactory.create moveModeName
 
-		@applicationGridService = new GridService()
-		
+		@table = new Table $(@tableSelector), moveMode
 		@table.header header
 
-		@table.listenRowEvent 'click', (id, element) =>
-			if @table.hasClassOfRow id, @rowSelectedClass
-				@applicationGridService.unselect @tableSelector, id
-			else
-				@applicationGridService.select @tableSelector, id
-
-
-		@table.listenCellEvent 'click', (rowId, element) =>
-			columnName = element.attr('data-column')
-			@table.toCellEdit rowId, columnName
-
+		moveMode.init @table, new GridService, @rowSelectedClass
 
 		DomainEvent.subscribe 'GridRowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId

@@ -1,10 +1,12 @@
 class Table
-    constructor: (@table) ->
+    constructor: (@table, @moveMode) ->
         @rows = {}
         @rowsById = {}
         @numberOfRows = 0
 
-        @moveMode = new ExcelMoveMode
+    selector: ->
+        @table.selector
+
 
     header: (@columns) ->
         newTr = $('<tr></tr>')
@@ -156,7 +158,7 @@ class Table
         column.find("span").replaceWith(input)
         input.select()
 
-        @moveMode.move input, column, this
+        @moveMode.move input, column
 
     listenCellEvent: (eventName, callback) ->
         @table.on eventName, 'td', ->

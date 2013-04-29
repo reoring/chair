@@ -1,16 +1,39 @@
 class ExcelMoveMode
 	init: (@table, @applicationGridService, @rowSelectedClass) ->
+		@table.listenCellEvent 'click', (rowId, element) =>
+			columnName = element.attr('data-column')
+			@table.toCellEdit rowId, columnName
 
-		@table.listenRowEvent 'click', (id, element) =>
+	beforeHeader: (tr) ->
+		input = $('<input></input>').attr 'type', 'checkbox'
+
+		input.on 'click', =>
+			if $(this).prop 'checked'
+				@applicationGridService.unselectAll @table.selector()
+				$(this).prop 'checked', false
+			else
+				@applicationGridService.selectAll @table.selector()
+				$(this).prop 'checked', true
+
+		tr.append $('<td></td>').append(input)
+
+	beforeInsert: (id, tr) ->
+		input = $('<input></input>').attr 'type', 'checkbox'
+		input.attr 'data-row-id', id
+
+		input.on 'click', =>
 			if @table.hasClassOfRow id, @rowSelectedClass
 				@applicationGridService.unselect @table.selector(), id
 			else
 				@applicationGridService.select @table.selector(), id
 
+		tr.append $('<td></td>').append input
 
-		@table.listenCellEvent 'click', (rowId, element) =>
-			columnName = element.attr('data-column')
-			@table.toCellEdit rowId, columnName
+	beforeRowSelect: (id) ->
+		$('input[data-row-id='+id+']').prop 'checked', true
+
+	beforeRowUnselect: (id) ->
+		$('input[data-row-id='+id+']').prop 'checked', false
 
 	move: (input, column) ->
 		input.on 'keydown', (event) =>

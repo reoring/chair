@@ -11,12 +11,16 @@ class Table
     header: (@columns) ->
         newTr = $('<tr></tr>')
 
+        @moveMode.beforeHeader? newTr
+
         for column in @columns
             newTr.append $('<th></th>').attr('data-column-id', column.id)
                                        .append $('<span></span>')
                                        .append column.title
 
             @table.find('thead').append newTr
+
+        @moveMode.afterHeader? newTr
 
     get: (index) ->
         @rows[index]
@@ -51,6 +55,8 @@ class Table
 
         tr = $('<tr></tr>').attr 'data-id', id
 
+        @moveMode.beforeInsert? id, tr
+
         @rows[@numberOfRows++] = data
         @rowsById[id] = data
 
@@ -62,12 +68,24 @@ class Table
 
         @table.find('tbody').append tr
 
+        @moveMode.afterInsert? id, tr
+
     createRowColumn: (column, value) ->
         td = $('<td></td>')
         td.addClass(column).attr('data-column', column.id)
         td.attr('data-column-editable', column.editable)
         td.addClass('disabled') if column.editable == false
         td.append $('<span></span>').append value
+
+    selectRow: (rowId, cssClass) ->
+        @moveMode.beforeRowSelect? rowId
+        @addClassToRow rowId, cssClass
+        @moveMode.afterRowSelect? rowId
+
+    unselectRow: (rowId, cssClass) ->
+        @moveMode.beforeRowUnselect? rowId
+        @removeClassFromRow rowId, cssClass
+        @moveMode.afterRowUnselect? rowId
 
     addClassToRow: (id, className) ->
         row = @findRow(id)
@@ -158,7 +176,7 @@ class Table
         column.find("span").replaceWith(input)
         input.select()
 
-        @moveMode.move input, column
+        @moveMode.move? input, column
 
     listenCellEvent: (eventName, callback) ->
         @table.on eventName, 'td', ->

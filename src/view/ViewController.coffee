@@ -4,7 +4,7 @@ class ViewController
 
 		@applicationGridService = new GridService
 
-		@table = new Table $(@tableSelector), moveMode
+		@table = new Table $(@tableSelector), moveMode, @applicationGridService
 		@table.header header
 
 		moveMode.init @table, @applicationGridService, @rowSelectedClass
@@ -26,3 +26,6 @@ class ViewController
 
 	unselectAll: (gridId) ->
 		@applicationGridService.unselectAll(gridId)
+
+	cursor: (rowId) ->
+		@table.cursorRow rowId

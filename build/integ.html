@@ -43,6 +43,10 @@
         border: 0;
     }
 
+    .table tr.current {
+        border-left: 3px solid red;
+    }
+
     </style>
 </head>
 
@@ -85,11 +89,11 @@ $ ->
     DomainRegistry.gridRepository().add(grid)
 
     viewController = new ViewController(grid, "#chair_table",
-                                        [{id: 'name',  title: 'Name',  editable: false}
-                                         {id: 'age',   title: 'Age',   editable: true}
-                                         {id: 'flag',  title: 'Flag',  editable: false}
-                                         {id: 'flag2', title: 'Flag2', editable: true}
-                                         {id: 'flag3', title: 'Flag3', editable: false} ],
+                                        [{id: 'name',  title: 'Name',  editable: true}
+                                         {id: 'age',   title: 'Age',   editable: false}
+                                         {id: 'flag',  title: 'Flag',  editable: true}
+                                         {id: 'flag2', title: 'Flag2', editable: false}
+                                         {id: 'flag3', title: 'Flag3', editable: true} ],
                                          'row_selected'
                                          'excel'
                                         )
@@ -115,6 +119,8 @@ $ ->
     for i in [10..20]
         grid.append(new Row('line' + i, {name: "ok!",     age: 1,     flag: false, flag2: 'd', flag3: 4}))
 
+    viewController.cursor 'line1'
+
 
 # application service
 
@@ -123,6 +129,7 @@ gridService.select '#chair_table', 'line1'
 
 gridService.select '#chair_table', 'line3'
 gridService.unselect '#chair_table', 'line3'
+
 
 </script>
 

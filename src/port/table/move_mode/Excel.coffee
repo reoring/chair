@@ -8,12 +8,13 @@ class ExcelMoveMode
 		input = $('<input></input>').attr 'type', 'checkbox'
 
 		input.on 'click', =>
-			if $(this).prop 'checked'
+			checkbox = $(this)
+			if checkbox.prop 'checked'
 				@applicationGridService.unselectAll @table.selector()
-				$(this).prop 'checked', false
+				checkbox.prop 'checked', false
 			else
 				@applicationGridService.selectAll @table.selector()
-				$(this).prop 'checked', true
+				checkbox.prop 'checked', true
 
 		tr.append $('<td></td>').append(input)
 

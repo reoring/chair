@@ -1,12 +1,31 @@
 class Table
-    constructor: (@table, @moveMode) ->
+    constructor: (@table, @moveMode, @gridService) ->
         @rows = {}
         @rowsById = {}
         @numberOfRows = 0
 
+        @currentCursor = undefined
+
+        $(document).on 'keydown', (event) =>
+            currentRow = @findRow @currentCursor
+
+            if event.which == 32 # space
+                if currentRow.hasClass 'row_selected'
+                    @gridService.unselect @selector(), currentRow.attr 'data-id'
+                else
+                    @gridService.select @selector(), currentRow.attr 'data-id'
+
+            if event.which == 40 # down cursor
+                event.preventDefault()
+                nextRow = currentRow.next()
+            else if event.which == 38 # up cursor
+                event.preventDefault()
+                nextRow = currentRow.prev()
+             
+             @cursorRow nextRow.attr 'data-id' unless nextRow.length == 0
+
     selector: ->
         @table.selector
-
 
     header: (@columns) ->
         newTr = $('<tr></tr>')
@@ -49,6 +68,15 @@ class Table
             columnIndex++
 
         oldTr.html(newTr.html())
+
+    cursorRow: (rowId) ->
+        if @currentCursor == undefined
+            @addClassToRow rowId, 'current'
+        else
+            @removeClassFromRow @currentCursor, 'current'
+            @addClassToRow rowId, 'current'
+
+        @currentCursor = rowId
 
     insert: (data, id) ->
         id = @guid() if id is undefined

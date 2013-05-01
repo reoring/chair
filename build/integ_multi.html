@@ -1,0 +1,140 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>table</title>
+
+    <script type="text/javascript" src="jquery-2.0.0.min.js"></script>
+    <script type="text/javascript" src="coffee-script.js"></script>
+    <script type="text/javascript" src="chair.all.js"></script>
+    <link href="bootstrap-combined.min.css" rel="stylesheet">
+
+    <style type="text/css">
+
+
+    tr.row_selected {
+        background: #ffc;
+    }
+
+    .table tr {
+        cursor: pointer;
+    }
+
+    .table span {
+        cursor: text;
+    }
+
+    .table td {
+        /* border-right: 1px solid #ddd; */
+        -webkit-user-select: none;
+    }
+
+    .table td.disabled {
+        background: #eee;
+    }
+
+    table.table tr input {
+        border: 1px solid #ddd;
+        -webkit-border-radius: 0;
+        border-radius: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .table tr.current {
+        border-left: 3px solid red;
+    }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <table id="chair_table" class="table">
+        <colgroup><col style="width: 50px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+
+    <table id="chair_table2" class="table">
+        <colgroup><col style="width: 50px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/coffeescript">
+
+$ ->
+    formaters =
+        right: (html)-> return '<div class="pull-right">'+html+'</div>'
+        bold: (html)-> return '<strong>'+html+'</strong>'
+
+    grid = new Grid('#chair_table', [
+        new Column('name', "Onamae", [new ColumnFormat(formaters.right),
+                                      new ColumnFormat(formaters.bold)])
+        new Column('age', "Nenrei")
+    ])
+
+    DomainRegistry.gridRepository().add(grid)
+
+    viewController1 = new ViewController(grid, "#chair_table",
+                                        [{id: 'name',  title: 'Name',  editable: true}
+                                         {id: 'age',   title: 'Age',   editable: false}
+                                         {id: 'flag',  title: 'Flag',  editable: true}
+                                         {id: 'flag2', title: 'Flag2', editable: false}
+                                         {id: 'flag3', title: 'Flag3', editable: true} ],
+                                         'row_selected'
+                                         'excel'
+                                        )
+
+    grid.append(new Row('line1', {name: "suin",    age: 26,    flag: true,  flag2: 'a', falg3: 1}))
+    grid.append(new Row('line2', {name: "reoring", age: 300,   flag: false, flag2: 'b', flag3: 2}))
+    grid.append(new Row('line3', {name: "nouphet", age: 30000, falg: true,  flag2: 'c', flag3: 3}))
+
+    viewController1.cursor 'line1'
+</script>
+
+<script type="text/coffeescript">
+
+$ ->
+    formaters =
+        right: (html)-> return '<div class="pull-right">'+html+'</div>'
+        bold: (html)-> return '<strong>'+html+'</strong>'
+
+    grid = new Grid('#chair_table2', [
+        new Column('name', "Onamae", [new ColumnFormat(formaters.right),
+                                      new ColumnFormat(formaters.bold)])
+        new Column('age', "Nenrei")
+    ])
+
+    DomainRegistry.gridRepository().add(grid)
+
+    viewController2 = new ViewController(grid, "#chair_table2",
+                                        [{id: 'name',  title: 'Name',  editable: true}
+                                         {id: 'age',   title: 'Age',   editable: false}],
+                                         'row_selected'
+                                         'excel'
+                                        )
+
+    for i in [1..5]
+        grid.append(new Row('line' + i, {name: "ok!", age: 1}))
+
+    viewController2.cursor 'line1'
+</script>
+
+</body>
+</html>

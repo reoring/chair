@@ -9,7 +9,12 @@ class Table
         $(document).on 'keydown', (event) =>
             currentRow = @findRow @currentCursor
 
+            if currentRow.length == 0
+                return
+
             if event.which == 32 # space
+                event.preventDefault()
+
                 if currentRow.hasClass 'row_selected'
                     @gridService.unselect @selector(), currentRow.attr 'data-id'
                 else
@@ -18,11 +23,11 @@ class Table
             if event.which == 40 # down cursor
                 event.preventDefault()
                 nextRow = currentRow.next()
+                @cursorRow nextRow.attr 'data-id' unless nextRow.length == 0
             else if event.which == 38 # up cursor
                 event.preventDefault()
                 nextRow = currentRow.prev()
-             
-             @cursorRow nextRow.attr 'data-id' unless nextRow.length == 0
+                @cursorRow nextRow.attr 'data-id' unless nextRow.length == 0
 
     selector: ->
         @table.selector
@@ -55,7 +60,9 @@ class Table
 
         return data
 
-    updateById: (id, data) ->
+    updateById: (rowId, data) ->
+        id = @rowIdOfGlobal rowId
+
         newTr = $('<tr></tr>').attr 'data-id', id
         oldTr = $(@table).find('tr[data-id=' + id + ']')
 
@@ -78,12 +85,17 @@ class Table
 
         @currentCursor = rowId
 
+    rowIdOfGlobal: (rowId) ->
+        @selector().replace('#', '') + '_' + rowId
+
     insert: (data, id) ->
         id = @guid() if id is undefined
 
-        tr = $('<tr></tr>').attr 'data-id', id
+        rowId = @rowIdOfGlobal id
 
-        @moveMode.beforeInsert? id, tr
+        tr = $('<tr></tr>').attr 'data-id', rowId
+
+        @moveMode.beforeInsert? rowId, tr
 
         @rows[@numberOfRows++] = data
         @rowsById[id] = data
@@ -96,7 +108,7 @@ class Table
 
         @table.find('tbody').append tr
 
-        @moveMode.afterInsert? id, tr
+        @moveMode.afterInsert? rowId, tr
 
     createRowColumn: (column, value) ->
         td = $('<td></td>')
@@ -132,8 +144,8 @@ class Table
     hasClassOfRow: (id, className) ->
         @findRow(id).hasClass className
 
-    findRow: (id) ->
-        $(@table).find('tr[data-id=' + id + ']')
+    findRow: (rowId) ->
+        $(@table).find('tr[data-id=' + rowId + ']')
 
     listen: (id, eventName, callback) ->
         @findRow(id).on eventName, ->

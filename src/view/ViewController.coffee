@@ -9,14 +9,19 @@ class ViewController
 
 		moveMode.init @table, @applicationGridService, @rowSelectedClass
 
+		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
+			if event.gridId is @tableSelector
+				for row in event.rows
+					@table.insert row.columns, row.rowId
+
 		DomainEvent.subscribe 'GridRowAppended', (event, eventName)=>
-			@table.insert event.columns, event.rowId if event.gridId == @tableSelector
+			@table.insert event.columns, event.rowId if event.gridId is @tableSelector
 
 		DomainEvent.subscribe 'GridRowSelected', (event, eventName)=>
-			@table.selectRow event.rowId, @rowSelectedClass if event.gridId == @tableSelector
+			@table.selectRow event.rowId, @rowSelectedClass if event.gridId is @tableSelector
 
 		DomainEvent.subscribe 'GridRowUnselected', (event, eventName)=>
-			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId == @tableSelector
+			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @tableSelector
 
 	add: (id, row)->
 		@grid.append new Row(id, row)

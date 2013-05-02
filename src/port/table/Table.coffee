@@ -9,10 +9,10 @@ class Table
         $(document).on 'keydown', (event) =>
             currentRow = @findRow @currentCursor
 
-            if currentRow.length == 0
+            if currentRow.length is 0
                 return
 
-            if event.which == 32 # space
+            if event.which is 32 # space
                 event.preventDefault()
 
                 if currentRow.hasClass 'row_selected'
@@ -20,14 +20,14 @@ class Table
                 else
                     @gridService.select @selector(), currentRow.attr 'data-id'
 
-            if event.which == 40 # down cursor
+            if event.which is 40 # down cursor
                 event.preventDefault()
                 nextRow = currentRow.next()
-                @cursorRow nextRow.attr 'data-id' unless nextRow.length == 0
-            else if event.which == 38 # up cursor
+                @cursorRow nextRow.attr 'data-id' unless nextRow.length is 0
+            else if event.which is 38 # up cursor
                 event.preventDefault()
                 nextRow = currentRow.prev()
-                @cursorRow nextRow.attr 'data-id' unless nextRow.length == 0
+                @cursorRow nextRow.attr 'data-id' unless nextRow.length is 0
 
     selector: ->
         @table.selector
@@ -77,7 +77,7 @@ class Table
         oldTr.html(newTr.html())
 
     cursorRow: (rowId) ->
-        if @currentCursor == undefined
+        if @currentCursor is undefined
             @addClassToRow rowId, 'current'
         else
             @removeClassFromRow @currentCursor, 'current'
@@ -114,7 +114,7 @@ class Table
         td = $('<td></td>')
         td.addClass(column).attr('data-column', column.id)
         td.attr('data-column-editable', column.editable)
-        td.addClass('disabled') if column.editable == false
+        td.addClass('disabled') if column.editable is false
         td.append $('<span></span>').append value
 
     selectRow: (rowId, cssClass) ->
@@ -166,11 +166,11 @@ class Table
         @_editCell column if @isCellEditable column
 
     isCellEditable: (column) ->
-        column.attr('data-column-editable') == 'true'
+        column.attr('data-column-editable') is 'true'
 
     _editPreviousCell: (column) ->
         column = @searchEditableColumnToBackward column
-        return false if column == false
+        return false if column is false
         @_editCell column if @isCellEditable column
 
     searchEditableColumnToBackward: (column, depth = 1) ->
@@ -180,7 +180,7 @@ class Table
 
         return prevColumn if @isCellEditable prevColumn
 
-        if prevColumn.length == 0
+        if prevColumn.length is 0
             parent = column.parent().prev()
             numberOfChildren = parent.children().length
             prevColumn = $ parent.children()[numberOfChildren - 1]
@@ -195,7 +195,7 @@ class Table
 
         return nextColumn if @isCellEditable nextColumn
 
-        if nextColumn.length == 0
+        if nextColumn.length is 0
             nextRow = column.parent().next()
             nextColumn = $ nextRow.children()[0]
             return nextColumn if @isCellEditable nextColumn
@@ -204,11 +204,11 @@ class Table
 
     _editNextCell: (column) ->
         column = @searchEditableColumnToForward column
-        return false if column == false
+        return false if column is false
         @_editCell column if @isCellEditable column
 
     _editCell: (column) ->
-        return false if column == false
+        return false if column is false
 
         input = $('<input type="text"></input>').val(column.text())
 

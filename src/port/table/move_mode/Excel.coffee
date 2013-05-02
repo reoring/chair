@@ -38,20 +38,20 @@ class ExcelMoveMode
 
 	move: (input, column) ->
 		input.on 'keydown', (event) =>
-			if event.which == 9 # tab
+			if event.which is 9 # tab
 				event.preventDefault()
 
 				input.replaceWith $('<span></span>').text input.val()
 				
-				if event.shiftKey == true
+				if event.shiftKey is true
 					@table._editPreviousCell column
 				else
 					@table._editNextCell column
 
-			if event.which == 13 # enter
+			if event.which is 13 # enter
 				input.replaceWith $('<span></span>').text input.val()
 
-				if event.shiftKey == true
+				if event.shiftKey is true
 					prevRow = $ column.parent().prev()
 					prevColumn = prevRow.find('td[data-column=' + column.attr('data-column') + ']')
 

@@ -14,13 +14,13 @@ class ViewController
 				for row in event.rows
 					@table.insert row.columns, row.rowId
 
-		DomainEvent.subscribe 'GridRowAppended', (event, eventName)=>
+		DomainEvent.subscribe 'RowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId if event.gridId is @tableSelector
 
-		DomainEvent.subscribe 'GridRowSelected', (event, eventName)=>
+		DomainEvent.subscribe 'RowSelected', (event, eventName)=>
 			@table.selectRow event.rowId, @rowSelectedClass if event.gridId is @tableSelector
 
-		DomainEvent.subscribe 'GridRowUnselected', (event, eventName)=>
+		DomainEvent.subscribe 'RowUnselected', (event, eventName)=>
 			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @tableSelector
 
 	add: (id, row)->

@@ -1,10 +1,16 @@
 DomainRegistry = 
     _gridRepository: null
-
-    rowSelectionService: ()->
-        return new RowSelectionService()
+    _rowRepository: null
 
     gridRepository: ()->
         if @_gridRepository is null
             @_gridRepository = new GridRepository()
         return @_gridRepository
+
+    rowRepository: ()->
+        return @_rowRepository
+
+    setRowRepository: (@_rowRepository)->
+
+    gridChangeService: ()->
+        return new GridChangeService()

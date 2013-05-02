@@ -1,4 +1,26 @@
 class GridService
+
+    startup: (gridId, columnsConfig, ajaxURL)->
+        throw new Error('Grid ID is required') unless gridId
+        throw new Error('Columns Config are required') unless columnsConfig
+        throw new Error('Ajax URL is required') unless ajaxURL
+
+        columnsConfig = JSON.parse(columnsConfig)
+
+        columns = []
+
+        for own columnId, config of columnsConfig
+            formats = [] # todo: implement when we need that
+            columns.push(new Column(columnId config.title, formats))
+
+        grid = new Grid(gridId, columns)
+
+        DomainRegistry.gridRepository().add(grid)
+
+        DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(ajaxURL))
+
+        null
+
     select: (gridId, rowId)->
         DomainRegistry.rowRepository().rowOfId gridId, rowId, (error, row)->
             throw new Error(error) if error

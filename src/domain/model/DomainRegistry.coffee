@@ -8,6 +8,7 @@ DomainRegistry =
         return @_gridRepository
 
     rowRepository: ()->
+        throw new Error('Row Repository has not been initialized') unless @_rowRepository
         return @_rowRepository
 
     setRowRepository: (@_rowRepository)->

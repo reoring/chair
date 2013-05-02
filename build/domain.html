@@ -34,30 +34,29 @@ DomainEvent.subscribe '*', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
 #
-# Domain logic example
+# Sample starting-up code for client
 #
-formaters =
-    right: (html)-> return '<div class="pull-right">'+html+'</div>'
-    bold: (html)-> return '<strong>'+html+'</strong>'
+applicationGridService = new GridService()
 
-grid = new Grid('that_grid_id', [
-    new Column('name', "Onamae", [new ColumnFormat(formaters.right), new ColumnFormat(formaters.bold)])
-    new Column('age', "Nenrei")
-])
-
-# grid.append(new Row('line1', {name: "suin", age: 26}))
-# grid.append(new Row('line2', {name: "reoring", age: 300}))
-# grid.append(new Row('line3', {name: "nouphet", age: 30000}))
-
-DomainRegistry.gridRepository().add(grid)
-
-url = '/datasource.json'
-DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(url))
+gridId = 'that_grid_id'
+columnConfigJSON = """
+{
+    "name": {
+        "title": "Full Name",
+        "formats": ["bold"]
+    },
+    "age": {
+        "title": "Age",
+        "formats": ["pull-right"]
+    }
+}
+"""
+ajaxURL = './datasource.json'
+applicationGridService.startup(gridId, columnConfigJSON, ajaxURL)
 
 #
 # Grid manipulation in client code
 #
-applicationGridService = new GridService()
 applicationGridService.change('that_grid_id', 1, 20)
 
 setTimeout(

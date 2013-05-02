@@ -29,6 +29,7 @@ class JQueryAjaxRowRepository extends RowRepository
     rowsSpecifiedBy: (condition, callback)->
         $.ajax {
             url: @ajaxURL
+            data: {id: condition.gridId}
             dataType: 'json'
             success: (data)=>
                 return callback("Response is not object", null) if typeof data isnt 'object'

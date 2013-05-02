@@ -11,7 +11,7 @@ class GridService
 
         for own columnId, config of columnsConfig
             formats = [] # todo: implement when we need that
-            columns.push(new Column(columnId config.title, formats))
+            columns.push(new Column(columnId, config.title, formats))
 
         grid = new Grid(gridId, columns)
 

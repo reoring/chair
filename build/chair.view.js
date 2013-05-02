@@ -1,31 +1,33 @@
 var ViewController;
 
 ViewController = (function() {
-  function ViewController(grid, tableSelector, header, rowSelectedClass) {
-    var _this = this;
+  function ViewController(grid, tableSelector, header, rowSelectedClass, moveModeName) {
+    var moveMode,
+      _this = this;
 
     this.grid = grid;
     this.tableSelector = tableSelector;
     this.header = header;
     this.rowSelectedClass = rowSelectedClass != null ? rowSelectedClass : 'row_selected';
-    this.table = new Table($(this.tableSelector));
-    this.applicationGridService = new GridService();
+    moveMode = MoveModeFactory.create(moveModeName);
+    this.applicationGridService = new GridService;
+    this.table = new Table($(this.tableSelector), moveMode, this.applicationGridService);
     this.table.header(header);
-    this.table.listenRowEvent('click', function(id, element) {
-      if (_this.table.hasClassOfRow(id, _this.rowSelectedClass)) {
-        return _this.applicationGridService.unselect(_this.tableSelector, id);
-      } else {
-        return _this.applicationGridService.select(_this.tableSelector, id);
+    moveMode.init(this.table, this.applicationGridService, this.rowSelectedClass);
+    DomainEvent.subscribe('RowAppended', function(event, eventName) {
+      if (event.gridId === _this.tableSelector) {
+        return _this.table.insert(event.columns, event.rowId);
       }
     });
-    DomainEvent.subscribe('GridRowAppended', function(event, eventName) {
-      return _this.table.insert(event.columns, event.rowId);
+    DomainEvent.subscribe('RowSelected', function(event, eventName) {
+      if (event.gridId === _this.tableSelector) {
+        return _this.table.selectRow(event.rowId, _this.rowSelectedClass);
+      }
     });
-    DomainEvent.subscribe('GridRowSelected', function(event, eventName) {
-      return _this.table.addClassToRow(event.rowId, _this.rowSelectedClass);
-    });
-    DomainEvent.subscribe('GridRowUnselected', function(event, eventName) {
-      return _this.table.removeClassFromRow(event.rowId, _this.rowSelectedClass);
+    DomainEvent.subscribe('RowUnselected', function(event, eventName) {
+      if (event.gridId === _this.tableSelector) {
+        return _this.table.unselectRow(event.rowId, _this.rowSelectedClass);
+      }
     });
   }
 
@@ -39,6 +41,10 @@ ViewController = (function() {
 
   ViewController.prototype.unselectAll = function(gridId) {
     return this.applicationGridService.unselectAll(gridId);
+  };
+
+  ViewController.prototype.cursor = function(rowId) {
+    return this.table.cursorRow(rowId);
   };
 
   return ViewController;

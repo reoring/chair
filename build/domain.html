@@ -30,19 +30,7 @@
 #
 # Event subscription
 #
-DomainEvent.subscribe 'GridRowAppended', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
-DomainEvent.subscribe 'GridRowSelected', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
-DomainEvent.subscribe 'GridRowUnselected', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
-DomainEvent.subscribe 'GridColumnUpdated', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
-DomainEvent.subscribe 'GridRowRemoved', (event, eventName)->
+DomainEvent.subscribe '*', (event, eventName)->
     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
 #
@@ -57,22 +45,33 @@ grid = new Grid('that_grid_id', [
     new Column('age', "Nenrei")
 ])
 
-grid.append(new Row('line1', {name: "suin", age: 26}))
-grid.append(new Row('line2', {name: "reoring", age: 300}))
-grid.append(new Row('line3', {name: "nouphet", age: 30000}))
+# grid.append(new Row('line1', {name: "suin", age: 26}))
+# grid.append(new Row('line2', {name: "reoring", age: 300}))
+# grid.append(new Row('line3', {name: "nouphet", age: 30000}))
 
 DomainRegistry.gridRepository().add(grid)
+
+url = '/datasource.json'
+DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(url))
 
 #
 # Grid manipulation in client code
 #
 applicationGridService = new GridService()
-applicationGridService.select('that_grid_id', 'that_row_id')
-applicationGridService.updateColumn('that_grid_id', 'line1', 'name', 'suinyeze')
-applicationGridService.updateColumn('that_grid_id', 'line1', 'age', '27')
-applicationGridService.unselectAll('that_grid_id')
-applicationGridService.removeRow('that_grid_id', 'line1')
-applicationGridService.removeRow('that_grid_id', 'line2')
+applicationGridService.change('that_grid_id', 1, 20)
+
+setTimeout(
+    ()->
+        applicationGridService.select('that_grid_id', '1')
+        applicationGridService.updateColumn('that_grid_id', '1', 'name', 'suinyeze')
+        applicationGridService.updateColumn('that_grid_id', '1', 'age', '27')
+        applicationGridService.unselectAll('that_grid_id')
+        applicationGridService.removeRow('that_grid_id', '1')
+        applicationGridService.removeRow('that_grid_id', '2')
+    , 500
+)
+
+
 </script>
 
 </body>

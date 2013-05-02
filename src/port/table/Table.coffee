@@ -76,6 +76,10 @@ class Table
 
         oldTr.html(newTr.html())
 
+    cursorTop: () ->
+        row = @get 0
+        @cursorRow @rowIdOfGlobal row.id
+
     cursorRow: (rowId) ->
         if @currentCursor is undefined
             @addClassToRow rowId, 'current'
@@ -97,13 +101,13 @@ class Table
 
         @moveMode.beforeInsert? rowId, tr
 
-        @rows[@numberOfRows++] = data
+        @rows[@numberOfRows++] = {id: id, data: data}
         @rowsById[id] = data
 
         columnIndex = 0
 
-        for x in data
-            tr.append @createRowColumn @columns[columnIndex], x
+        for column, value of data
+            tr.append @createRowColumn @columns[columnIndex], value
             columnIndex++
 
         @table.find('tbody').append tr

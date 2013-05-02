@@ -1,18 +1,23 @@
 class ViewController
-	constructor: (@grid, @tableSelector, @header, @rowSelectedClass = 'row_selected', moveModeName) ->
+	constructor: (@gridId, columnConfigJSON, ajaxURL, @tableSelector,  @rowSelectedClass = 'row_selected', moveModeName) ->
 		moveMode = MoveModeFactory.create moveModeName
 
 		@applicationGridService = new GridService
+		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
 
 		@table = new Table $(@tableSelector), moveMode, @applicationGridService
-		@table.header header
+		@table.header JSON.parse(columnConfigJSON)
 
 		moveMode.init @table, @applicationGridService, @rowSelectedClass
 
+		@applicationGridService.change(@gridId, 1, 20)
+
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
-			if event.gridId is @tableSelector
+			if event.gridId is @gridId
 				for row in event.rows
-					@table.insert row.columns, row.rowId
+					@table.insert row.columns, row.id
+
+			@cursor()
 
 		DomainEvent.subscribe 'RowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId if event.gridId is @tableSelector
@@ -33,4 +38,5 @@ class ViewController
 		@applicationGridService.unselectAll(gridId)
 
 	cursor: (rowId) ->
-		@table.cursorRow rowId
+		@table.cursorRow rowId unless rowId is undefined
+		@table.cursorTop()

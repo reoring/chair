@@ -76,24 +76,32 @@
 <script type="text/coffeescript">
 
 $ ->
-    formaters =
-        right: (html)-> return '<div class="pull-right">'+html+'</div>'
-        bold: (html)-> return '<strong>'+html+'</strong>'
+    url = '/datasource.json'
 
-    grid = new Grid('#chair_table', [
-        new Column('name', "Onamae", [new ColumnFormat(formaters.right),
-                                      new ColumnFormat(formaters.bold)])
-        new Column('age', "Nenrei")
-    ])
+    columnConfigJSON = """
+    [
+        {
+            "id": "name",
+            "title": "Full Name",
+            "editable": false,
+            "formats": ["bold"]
+        },
+        {
+            "id": "name",
+            "title": "Age",
+            "editable": false,
+            "formats": ["pull-right"]
+        },
+        {
+            "id": "flag",
+            "title": "Flag",
+            "editable": false,
+            "formats": ["pull-right"]
+        }
+    ]
+    """
 
-    DomainRegistry.gridRepository().add(grid)
-
-    viewController = new ViewController(grid, "#chair_table",
-                                        [{id: 'name',  title: 'Name',  editable: true}
-                                         {id: 'age',   title: 'Age',   editable: false}
-                                         {id: 'flag',  title: 'Flag',  editable: true}
-                                         {id: 'flag2', title: 'Flag2', editable: false}
-                                         {id: 'flag3', title: 'Flag3', editable: true} ],
+    viewController = new ViewController('block_id.list', columnConfigJSON, url, "#chair_table",
                                          'row_selected'
                                          'excel'
                                         )
@@ -110,26 +118,6 @@ $ ->
                                 name: $("input[name=name]").val(),
                                 age: $("input[name=age]").val()
                             }
-
-    grid.append(new Row('line1', {name: "suin",    age: 26,    flag: true,  flag2: 'a', falg3: 1}))
-    grid.append(new Row('line2', {name: "reoring", age: 300,   flag: false, flag2: 'b', flag3: 2}))
-    grid.append(new Row('line3', {name: "nouphet", age: 30000, falg: true,  flag2: 'c', flag3: 3}))
-    grid.append(new Row('line4', {name: "ok!",     age: 1,     flag: false, flag2: 'd', flag3: 4}))
-
-    for i in [10..20]
-        grid.append(new Row('line' + i, {name: "ok!",     age: 1,     flag: false, flag2: 'd', flag3: 4}))
-
-    viewController.cursor 'chair_table_line1'
-
-
-# application service
-
-gridService = new GridService()
-gridService.select '#chair_table', 'line1'
-
-gridService.select '#chair_table', 'line3'
-gridService.unselect '#chair_table', 'line3'
-
 
 </script>
 

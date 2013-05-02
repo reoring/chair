@@ -40,16 +40,18 @@ applicationGridService = new GridService()
 
 gridId = 'that_grid_id'
 columnConfigJSON = """
-{
-    "name": {
+[
+    {
+        "id": "name",
         "title": "Full Name",
         "formats": ["bold"]
     },
-    "age": {
+    {
+        "id": "name",
         "title": "Age",
         "formats": ["pull-right"]
     }
-}
+]
 """
 ajaxURL = './datasource.json'
 applicationGridService.startup(gridId, columnConfigJSON, ajaxURL)

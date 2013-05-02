@@ -9,9 +9,9 @@ class GridService
 
         columns = []
 
-        for own columnId, config of columnsConfig
+        for config in columnsConfig
             formats = [] # todo: implement when we need that
-            columns.push(new Column(columnId, config.title, formats))
+            columns.push(new Column(config.id, config.title, formats))
 
         grid = new Grid(gridId, columns)
 

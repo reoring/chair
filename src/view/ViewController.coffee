@@ -3,7 +3,7 @@ class ViewController
 		@applicationGridService = new GridService
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
 
-	startup: ()->
+	startup: (page, rowsPerGrid)->
 		moveMode = MoveModeFactory.create @moveModeName
 
 		@table = new Table @gridId, $(@tableSelector), moveMode, @applicationGridService
@@ -11,7 +11,7 @@ class ViewController
 
 		moveMode.init @table, @applicationGridService, @rowSelectedClass
 
-		@applicationGridService.change(@gridId, 1, 20)
+		@applicationGridService.change(@gridId, page, rowsPerGrid)
 
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
 			if event.gridId is @gridId
@@ -33,11 +33,11 @@ class ViewController
 	add: (id, row)->
 		@grid.append new Row(id, row)
 
-	selectAll: (gridId) ->
-		@applicationGridService.selectAll(gridId)
+	selectAll: () ->
+		@applicationGridService.selectAll(@gridId)
 
-	unselectAll: (gridId) ->
-		@applicationGridService.unselectAll(gridId)
+	unselectAll: () ->
+		@applicationGridService.unselectAll(@gridId)
 
 	cursor: (rowId) ->
 		@table.cursorRow rowId unless rowId is undefined

@@ -104,13 +104,13 @@ $ ->
                                          'excel'
                                         )
 
-    viewController.startup()
+    viewController.startup(1, 1)
 
     $("#select_all").on "click", ->
-        viewController.selectAll("#chair_table")
+        viewController.selectAll()
 
     $("#unselect_all").on "click", ->
-        viewController.unselectAll("#chair_table")
+        viewController.unselectAll()
 
     $("#add_button").on "click", ->
         viewController.add $("input[name=name]").val(),

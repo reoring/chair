@@ -38,7 +38,7 @@ DomainEvent.subscribe '*', (event, eventName)->
 #
 applicationGridService = new GridService()
 
-gridId = 'that_grid_id'
+gridId = 'block_id.list'
 columnConfigJSON = """
 [
     {
@@ -59,16 +59,16 @@ applicationGridService.startup(gridId, columnConfigJSON, ajaxURL)
 #
 # Grid manipulation in client code
 #
-applicationGridService.change('that_grid_id', 1, 20)
+applicationGridService.change(gridId, 1, 20)
 
 setTimeout(
     ()->
-        applicationGridService.select('that_grid_id', '1')
-        applicationGridService.updateColumn('that_grid_id', '1', 'name', 'suinyeze')
-        applicationGridService.updateColumn('that_grid_id', '1', 'age', '27')
-        applicationGridService.unselectAll('that_grid_id')
-        applicationGridService.removeRow('that_grid_id', '1')
-        applicationGridService.removeRow('that_grid_id', '2')
+        applicationGridService.select(gridId, '1')
+        applicationGridService.updateColumn(gridId, '1', 'name', 'suinyeze')
+        applicationGridService.updateColumn(gridId, '1', 'age', '27')
+        applicationGridService.unselectAll(gridId)
+        applicationGridService.removeRow(gridId, '1')
+        applicationGridService.removeRow(gridId, '2')
     , 500
 )
 

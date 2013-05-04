@@ -1,13 +1,15 @@
 class Row
-    constructor: (@id, columns)->
+    constructor: (@id, columns, @gridId = null)->
         @columns = {}
         for own columnId, columnValue of columns
             @columns[columnId] = "#{columnValue}"
+
         @deleted = false
-        @gridId = null
         @selected = false
+
         DomainEvent.subscribe 'AllRowsSelected', (event)=>
             @select() if event.gridId == @gridId
+            
         DomainEvent.subscribe 'AllRowsUnselected', (event)=>
             @unselect() if event.gridId == @gridId
 

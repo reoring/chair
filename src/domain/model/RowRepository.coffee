@@ -20,6 +20,7 @@ class JQueryAjaxRowRepository extends RowRepository
     rowOfId: (gridId, rowId, callback)->
         throw new Error("Missing argument: gridId") unless gridId
         throw new Error("Missing argument: rowId") unless rowId
+
         if @_grids[gridId]?[rowId]?
             callback(null, @_grids[gridId][rowId])
         else
@@ -53,7 +54,12 @@ class JQueryAjaxRowRepository extends RowRepository
                         for own name, value of row
                             columns[name] = value if name isnt 'id'
 
-                        rowsForResponse.push(new Row(row.id, columns))
+                        @_grids[gridId] = {} if @_grids[gridId] is undefined
+
+                        row = new Row(row.id, columns, gridId)
+
+                        @_grids[gridId][row.id] = row
+                        rowsForResponse.push(row)
 
                 callback(null, rowsForResponse)
                 null

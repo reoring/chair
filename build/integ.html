@@ -35,7 +35,7 @@
         background: #eee;
     }
 
-    table.table tr input {
+    .table tr input {
         border: 1px solid #ddd;
         -webkit-border-radius: 0;
         border-radius: 0;
@@ -55,8 +55,6 @@
 <div class="container">
     <table id="chair_table" class="table">
         <colgroup><col style="width: 50px;"></colgroup>
-        <colgroup><col style="width: 200px;"></colgroup>
-        <colgroup><col style="width: 200px;"></colgroup>
         <colgroup><col style="width: 200px;"></colgroup>
         <colgroup><col style="width: 200px;"></colgroup>
 
@@ -83,19 +81,19 @@ $ ->
         {
             "id": "name",
             "title": "Full Name",
-            "editable": false,
+            "editable": true,
             "formats": ["bold"]
         },
         {
-            "id": "name",
+            "id": "age",
             "title": "Age",
-            "editable": false,
+            "editable": true,
             "formats": ["pull-right"]
         },
         {
             "id": "flag",
             "title": "Flag",
-            "editable": false,
+            "editable": true,
             "formats": ["pull-right"]
         }
     ]
@@ -105,6 +103,8 @@ $ ->
                                          'row_selected'
                                          'excel'
                                         )
+
+    viewController.startup()
 
     $("#select_all").on "click", ->
         viewController.selectAll("#chair_table")

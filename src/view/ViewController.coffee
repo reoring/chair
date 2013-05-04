@@ -1,12 +1,13 @@
 class ViewController
-	constructor: (@gridId, columnConfigJSON, ajaxURL, @tableSelector,  @rowSelectedClass = 'row_selected', moveModeName) ->
-		moveMode = MoveModeFactory.create moveModeName
-
+	constructor: (@gridId, @columnConfigJSON, ajaxURL, @tableSelector, @rowSelectedClass = 'row_selected', @moveModeName) ->
 		@applicationGridService = new GridService
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
 
-		@table = new Table $(@tableSelector), moveMode, @applicationGridService
-		@table.header JSON.parse(columnConfigJSON)
+	startup: ()->
+		moveMode = MoveModeFactory.create @moveModeName
+
+		@table = new Table @gridId, $(@tableSelector), moveMode, @applicationGridService
+		@table.header JSON.parse(@columnConfigJSON)
 
 		moveMode.init @table, @applicationGridService, @rowSelectedClass
 
@@ -20,13 +21,14 @@ class ViewController
 			@cursor()
 
 		DomainEvent.subscribe 'RowAppended', (event, eventName)=>
-			@table.insert event.columns, event.rowId if event.gridId is @tableSelector
+			@table.insert event.columns, event.rowId if event.gridId is @gridId
 
 		DomainEvent.subscribe 'RowSelected', (event, eventName)=>
-			@table.selectRow event.rowId, @rowSelectedClass if event.gridId is @tableSelector
+			@table.selectRow event.rowId, @rowSelectedClass if event.gridId is @gridId
 
 		DomainEvent.subscribe 'RowUnselected', (event, eventName)=>
-			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @tableSelector
+			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @gridId
+
 
 	add: (id, row)->
 		@grid.append new Row(id, row)

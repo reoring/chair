@@ -23,18 +23,18 @@ class ExcelMoveMode
 		input.attr 'data-row-id', id
 
 		input.on 'click', =>
-			if @table.hasClassOfRow id, @rowSelectedClass
-				@applicationGridService.unselect @table.selector(), id
+			if @table.hasClassOfRow @table.rowIdOfGlobal(id), @rowSelectedClass
+				@applicationGridService.unselect @table.tableId, id
 			else
-				@applicationGridService.select @table.selector(), id
+				@applicationGridService.select @table.tableId, id
 
 		tr.append $('<td></td>').append input
 
 	beforeRowSelect: (id) ->
-		$('input[data-row-id='+id+']').prop 'checked', true
+		$('input[data-row-id="' + id + '"]').prop 'checked', true
 
 	beforeRowUnselect: (id) ->
-		$('input[data-row-id='+id+']').prop 'checked', false
+		$('input[data-row-id="' + id + '"]').prop 'checked', false
 
 	move: (input, column) ->
 		input.on 'keydown', (event) =>
@@ -53,12 +53,12 @@ class ExcelMoveMode
 
 				if event.shiftKey is true
 					prevRow = $ column.parent().prev()
-					prevColumn = prevRow.find('td[data-column=' + column.attr('data-column') + ']')
+					prevColumn = prevRow.find('td[data-column="' + column.attr('data-column') + '"]')
 
 					@table._editCell prevColumn
 				else
 					nextRow = $ column.parent().next()
-					nextColumn = nextRow.find('td[data-column=' + column.attr('data-column') + ']')
+					nextColumn = nextRow.find('td[data-column="' + column.attr('data-column') + '"]')
 
 					@table._editCell nextColumn
 

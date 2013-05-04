@@ -1,5 +1,5 @@
 class Table
-    constructor: (@table, @moveMode, @gridService) ->
+    constructor: (@tableId, @table, @moveMode, @gridService) ->
         @rows = {}
         @rowsById = {}
         @numberOfRows = 0
@@ -14,11 +14,12 @@ class Table
 
             if event.which is 32 # space
                 event.preventDefault()
+                rowId = currentRow.attr('data-id').split('.')[2]
 
                 if currentRow.hasClass 'row_selected'
-                    @gridService.unselect @selector(), currentRow.attr 'data-id'
+                    @gridService.unselect @tableId, rowId
                 else
-                    @gridService.select @selector(), currentRow.attr 'data-id'
+                    @gridService.select @tableId, rowId
 
             if event.which is 40 # down cursor
                 event.preventDefault()
@@ -64,7 +65,7 @@ class Table
         id = @rowIdOfGlobal rowId
 
         newTr = $('<tr></tr>').attr 'data-id', id
-        oldTr = $(@table).find('tr[data-id=' + id + ']')
+        oldTr = $(@table).find('tr[data-id="' + id + '"]')
 
         @getById id = data
 
@@ -90,7 +91,7 @@ class Table
         @currentCursor = rowId
 
     rowIdOfGlobal: (rowId) ->
-        @selector().replace('#', '') + '_' + rowId
+        @tableId + '.' + rowId
 
     insert: (data, id) ->
         id = @guid() if id is undefined
@@ -99,7 +100,7 @@ class Table
 
         tr = $('<tr></tr>').attr 'data-id', rowId
 
-        @moveMode.beforeInsert? rowId, tr
+        @moveMode.beforeInsert? id, tr
 
         @rows[@numberOfRows++] = {id: id, data: data}
         @rowsById[id] = data
@@ -112,7 +113,7 @@ class Table
 
         @table.find('tbody').append tr
 
-        @moveMode.afterInsert? rowId, tr
+        @moveMode.afterInsert? id, tr
 
     createRowColumn: (column, value) ->
         td = $('<td></td>')
@@ -123,17 +124,17 @@ class Table
 
     selectRow: (rowId, cssClass) ->
         @moveMode.beforeRowSelect? rowId
-        @addClassToRow rowId, cssClass
+        @addClassToRow @rowIdOfGlobal(rowId), cssClass
         @moveMode.afterRowSelect? rowId
 
     unselectRow: (rowId, cssClass) ->
         @moveMode.beforeRowUnselect? rowId
-        @removeClassFromRow rowId, cssClass
+        @removeClassFromRow @rowIdOfGlobal(rowId), cssClass
         @moveMode.afterRowUnselect? rowId
 
     addClassToRow: (id, className) ->
-        row = @findRow(id)
-        row.addClass(className) if not row.hasClass(className)
+        row = $ @findRow(id)
+        row.addClass(className) unless row.hasClass(className)
 
     removeClassFromRow: (id, className) ->
         @findRow(id).removeClass(className)
@@ -149,7 +150,7 @@ class Table
         @findRow(id).hasClass className
 
     findRow: (rowId) ->
-        $(@table).find('tr[data-id=' + rowId + ']')
+        $(@table).find('tr[data-id="' + rowId + '"]')
 
     listen: (id, eventName, callback) ->
         @findRow(id).on eventName, ->
@@ -165,7 +166,7 @@ class Table
 
     toCellEdit: (rowId, columnId) ->
         row = @findRow rowId
-        column = row.find("td[data-column=" + columnId + "]")
+        column = row.find('td[data-column="' + columnId + '"]')
 
         @_editCell column if @isCellEditable column
 

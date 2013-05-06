@@ -37,11 +37,18 @@ class ExcelMoveMode
 		$('input[data-row-id="' + id + '"]').prop 'checked', false
 
 	move: (input, column) ->
+		tableId  = @table.tableId
+		rowId    = column.parents().attr('data-id').split('.')[2]
+		columnId = column.attr 'data-column'
+
 		input.on 'keydown', (event) =>
 			if event.which is 9 # tab
 				event.preventDefault()
 
-				input.replaceWith $('<span></span>').text input.val()
+				value = input.val()
+				@applicationGridService.updateColumn tableId, rowId, columnId, value
+
+				input.replaceWith $('<span></span>').text value
 				
 				if event.shiftKey is true
 					@table._editPreviousCell column
@@ -50,6 +57,10 @@ class ExcelMoveMode
 
 			if event.which is 13 # enter
 				input.replaceWith $('<span></span>').text input.val()
+				
+				value = input.val()
+
+				@applicationGridService.updateColumn tableId, rowId, columnId, value
 
 				if event.shiftKey is true
 					prevRow = $ column.parent().prev()

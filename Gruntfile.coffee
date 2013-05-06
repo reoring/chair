@@ -1,7 +1,24 @@
+path = require('path');
+lrSnippet = require('grunt-contrib-livereload/lib/utils').livereloadSnippet;
+ 
+folderMount = (connect, point) -> 
+  return connect.static(path.resolve(point));
+
 module.exports = (grunt) ->
-  
     # Project configuration.
     grunt.initConfig
+        connect:
+            livereload:
+                options:
+                    port: 9001
+                    middleware: (connect, options)->
+                        return [lrSnippet, folderMount(connect, '.')]
+
+        regarde:
+            fred:
+                files: ['**/*.html', '**/*.coffee', '**/*.json']
+                tasks: ['coffee','livereload']
+
         pkg: grunt.file.readJSON("package.json")
 
         coffee:
@@ -61,5 +78,10 @@ module.exports = (grunt) ->
     grunt.loadNpmTasks "grunt-contrib-coffee"
     grunt.loadNpmTasks "grunt-contrib-uglify"
 
+    grunt.loadNpmTasks "grunt-regarde"
+    grunt.loadNpmTasks "grunt-contrib-connect"
+    grunt.loadNpmTasks "grunt-contrib-livereload"
+
     # Default task(s).
-    grunt.registerTask "default", ["coffee", "uglify"]
+    # grunt.registerTask "default", ["coffee", "uglify"]
+    grunt.registerTask 'default', ['livereload-start', 'connect', 'regarde']

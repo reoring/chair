@@ -1,5 +1,6 @@
 class ViewController
 	constructor: (@gridId, @columnConfigJSON, ajaxURL, @tableSelector, @rowSelectedClass = 'row_selected', @moveModeName) ->
+		@rowModifiedClass = 'row_modified'
 		@applicationGridService = new GridService
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
 
@@ -13,12 +14,18 @@ class ViewController
 
 		@applicationGridService.change(@gridId, page, rowsPerGrid)
 
+		#DomainEvent.subscribe '*', (event, eventName)->
+		#    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
 			if event.gridId is @gridId
 				for row in event.rows
 					@table.insert row.columns, row.id
 
 			@cursor()
+
+		DomainEvent.subscribe 'ColumnUpdated', (event, eventName)=>
+			@table.addClassToRow @table.rowIdOfGlobal(event.rowId), @rowModifiedClass
 
 		DomainEvent.subscribe 'RowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId if event.gridId is @gridId

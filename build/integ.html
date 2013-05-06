@@ -13,9 +13,20 @@
 
     <style type="text/css">
 
+    .mark {
+        width: 0px;
+        height: 0px;
+        border-style: solid;
+        border-width: 0 1px 1px 0;
+        border-color: transparent #ff0088 transparent transparent;
+    }
 
     tr.row_selected {
         background: #ffc;
+    }
+
+    tr.row_modified {
+        background: #eef;
     }
 
     .table tr {
@@ -74,7 +85,7 @@
 <script type="text/coffeescript">
 
 $ ->
-    url = '/datasource.json'
+    url = '/build/datasource.json'
 
     columnConfigJSON = """
     [

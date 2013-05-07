@@ -89,6 +89,9 @@
 
 <script type="text/coffeescript">
 
+DomainEvent.subscribe '*', (event, name)->
+    console.log "EVENT: #{name}", event
+
 $ ->
     url = '/build/datasource.json'
 

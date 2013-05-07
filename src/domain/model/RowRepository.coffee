@@ -18,7 +18,7 @@ class JQueryAjaxRowRepository extends RowRepository
         callback("Missing argument: gridId", null) unless gridId
         callback("Missing argument: rowId", null) unless rowId
 
-        row = @gridContainer.get(rowId, gridId)
+        row = @gridContainer.get(gridId, rowId)
 
         if row instanceof Row
             callback(null, row)
@@ -90,6 +90,7 @@ class InMemoryRowContainer
     get: (gridId, rowId)->
         throw new Error('Grid ID is required') unless gridId
         throw new Error('Row ID is required') unless rowId
+
         if @_rowExists(gridId, rowId)
             return @grids[gridId][rowId]
         else

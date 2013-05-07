@@ -586,7 +586,7 @@ JQueryAjaxRowRepository = (function(_super) {
     if (!rowId) {
       callback("Missing argument: rowId", null);
     }
-    row = this.gridContainer.get(rowId, gridId);
+    row = this.gridContainer.get(gridId, rowId);
     if (row instanceof Row) {
       return callback(null, row);
     } else {

@@ -87,6 +87,9 @@ DomainRegistry = {
     return this._gridRepository;
   },
   rowRepository: function() {
+    if (!this._rowRepository) {
+      throw new Error('Row Repository has not been initialized');
+    }
     return this._rowRepository;
   },
   setRowRepository: function(_rowRepository) {
@@ -377,11 +380,12 @@ GridRepository = (function() {
 })();
 
 Row = (function() {
-  function Row(id, columns) {
+  function Row(id, columns, gridId) {
     var columnId, columnValue,
       _this = this;
 
     this.id = id;
+    this.gridId = gridId != null ? gridId : null;
     this.columns = {};
     for (columnId in columns) {
       if (!__hasProp.call(columns, columnId)) continue;
@@ -389,7 +393,6 @@ Row = (function() {
       this.columns[columnId] = "" + columnValue;
     }
     this.deleted = false;
-    this.gridId = null;
     this.selected = false;
     DomainEvent.subscribe('AllRowsSelected', function(event) {
       if (event.gridId === _this.gridId) {
@@ -579,10 +582,10 @@ JQueryAjaxRowRepository = (function(_super) {
     var _ref;
 
     if (!gridId) {
-      throw new Error("Missing argument: gridId");
+      callback("Missing argument: gridId", null);
     }
     if (!rowId) {
-      throw new Error("Missing argument: rowId");
+      callback("Missing argument: rowId", null);
     }
     if (((_ref = this._grids[gridId]) != null ? _ref[rowId] : void 0) != null) {
       return callback(null, this._grids[gridId][rowId]);
@@ -596,6 +599,11 @@ JQueryAjaxRowRepository = (function(_super) {
 
     return $.ajax({
       url: this.ajaxURL,
+      data: {
+        id: condition.gridId,
+        page: condition.page,
+        rowsPerGrid: condition.rowsPerGrid
+      },
       dataType: 'json',
       success: function(data) {
         var columns, gridId, name, row, rows, rowsForResponse, total, value, _i, _j, _len, _len1, _ref, _ref1, _ref2;
@@ -637,7 +645,12 @@ JQueryAjaxRowRepository = (function(_super) {
                 columns[name] = value;
               }
             }
-            rowsForResponse.push(new Row(row.id, columns));
+            if (_this._grids[gridId] === void 0) {
+              _this._grids[gridId] = {};
+            }
+            row = new Row(row.id, columns, gridId);
+            _this._grids[gridId][row.id] = row;
+            rowsForResponse.push(row);
           }
         }
         callback(null, rowsForResponse);

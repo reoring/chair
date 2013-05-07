@@ -1,9 +1,10 @@
 var ExcelMoveMode, MoveModeFactory, SequenceMoveMode, Table, TableUIHelper;
 
 Table = (function() {
-  function Table(table, moveMode, gridService) {
+  function Table(tableId, table, moveMode, gridService) {
     var _this = this;
 
+    this.tableId = tableId;
     this.table = table;
     this.moveMode = moveMode;
     this.gridService = gridService;
@@ -12,7 +13,7 @@ Table = (function() {
     this.numberOfRows = 0;
     this.currentCursor = void 0;
     $(document).on('keydown', function(event) {
-      var currentRow, nextRow;
+      var currentRow, nextRow, rowId;
 
       currentRow = _this.findRow(_this.currentCursor);
       if (currentRow.length === 0) {
@@ -20,10 +21,11 @@ Table = (function() {
       }
       if (event.which === 32) {
         event.preventDefault();
+        rowId = currentRow.attr('data-id').split('.')[2];
         if (currentRow.hasClass('row_selected')) {
-          _this.gridService.unselect(_this.selector(), currentRow.attr('data-id'));
+          _this.gridService.unselect(_this.tableId, rowId);
         } else {
-          _this.gridService.select(_this.selector(), currentRow.attr('data-id'));
+          _this.gridService.select(_this.tableId, rowId);
         }
       }
       if (event.which === 40) {
@@ -85,7 +87,7 @@ Table = (function() {
 
     id = this.rowIdOfGlobal(rowId);
     newTr = $('<tr></tr>').attr('data-id', id);
-    oldTr = $(this.table).find('tr[data-id=' + id + ']');
+    oldTr = $(this.table).find('tr[data-id="' + id + '"]');
     this.getById(id = data);
     columnIndex = 0;
     for (_i = 0, _len = data.length; _i < _len; _i++) {
@@ -94,6 +96,13 @@ Table = (function() {
       columnIndex++;
     }
     return oldTr.html(newTr.html());
+  };
+
+  Table.prototype.cursorTop = function() {
+    var row;
+
+    row = this.get(0);
+    return this.cursorRow(this.rowIdOfGlobal(row.id));
   };
 
   Table.prototype.cursorRow = function(rowId) {
@@ -107,11 +116,11 @@ Table = (function() {
   };
 
   Table.prototype.rowIdOfGlobal = function(rowId) {
-    return this.selector().replace('#', '') + '_' + rowId;
+    return this.tableId + '.' + rowId;
   };
 
   Table.prototype.insert = function(data, id) {
-    var columnIndex, rowId, tr, x, _base, _base1, _i, _len;
+    var column, columnIndex, rowId, tr, value, _base, _base1;
 
     if (id === void 0) {
       id = this.guid();
@@ -119,18 +128,21 @@ Table = (function() {
     rowId = this.rowIdOfGlobal(id);
     tr = $('<tr></tr>').attr('data-id', rowId);
     if (typeof (_base = this.moveMode).beforeInsert === "function") {
-      _base.beforeInsert(rowId, tr);
+      _base.beforeInsert(id, tr);
     }
-    this.rows[this.numberOfRows++] = data;
+    this.rows[this.numberOfRows++] = {
+      id: id,
+      data: data
+    };
     this.rowsById[id] = data;
     columnIndex = 0;
-    for (_i = 0, _len = data.length; _i < _len; _i++) {
-      x = data[_i];
-      tr.append(this.createRowColumn(this.columns[columnIndex], x));
+    for (column in data) {
+      value = data[column];
+      tr.append(this.createRowColumn(this.columns[columnIndex], value));
       columnIndex++;
     }
     this.table.find('tbody').append(tr);
-    return typeof (_base1 = this.moveMode).afterInsert === "function" ? _base1.afterInsert(rowId, tr) : void 0;
+    return typeof (_base1 = this.moveMode).afterInsert === "function" ? _base1.afterInsert(id, tr) : void 0;
   };
 
   Table.prototype.createRowColumn = function(column, value) {
@@ -151,7 +163,7 @@ Table = (function() {
     if (typeof (_base = this.moveMode).beforeRowSelect === "function") {
       _base.beforeRowSelect(rowId);
     }
-    this.addClassToRow(rowId, cssClass);
+    this.addClassToRow(this.rowIdOfGlobal(rowId), cssClass);
     return typeof (_base1 = this.moveMode).afterRowSelect === "function" ? _base1.afterRowSelect(rowId) : void 0;
   };
 
@@ -161,14 +173,14 @@ Table = (function() {
     if (typeof (_base = this.moveMode).beforeRowUnselect === "function") {
       _base.beforeRowUnselect(rowId);
     }
-    this.removeClassFromRow(rowId, cssClass);
+    this.removeClassFromRow(this.rowIdOfGlobal(rowId), cssClass);
     return typeof (_base1 = this.moveMode).afterRowUnselect === "function" ? _base1.afterRowUnselect(rowId) : void 0;
   };
 
   Table.prototype.addClassToRow = function(id, className) {
     var row;
 
-    row = this.findRow(id);
+    row = $(this.findRow(id));
     if (!row.hasClass(className)) {
       return row.addClass(className);
     }
@@ -194,7 +206,7 @@ Table = (function() {
   };
 
   Table.prototype.findRow = function(rowId) {
-    return $(this.table).find('tr[data-id=' + rowId + ']');
+    return $(this.table).find('tr[data-id="' + rowId + '"]');
   };
 
   Table.prototype.listen = function(id, eventName, callback) {
@@ -222,7 +234,7 @@ Table = (function() {
     var column, row;
 
     row = this.findRow(rowId);
-    column = row.find("td[data-column=" + columnId + "]");
+    column = row.find('td[data-column="' + columnId + '"]');
     if (this.isCellEditable(column)) {
       return this._editCell(column);
     }
@@ -397,10 +409,10 @@ ExcelMoveMode = (function() {
 
       checkbox = $(_this);
       if (checkbox.prop('checked')) {
-        _this.applicationGridService.unselectAll(_this.table.selector());
+        _this.applicationGridService.unselectAll(_this.table.tableId);
         return checkbox.prop('checked', false);
       } else {
-        _this.applicationGridService.selectAll(_this.table.selector());
+        _this.applicationGridService.selectAll(_this.table.tableId);
         return checkbox.prop('checked', true);
       }
     });
@@ -414,32 +426,38 @@ ExcelMoveMode = (function() {
     input = $('<input></input>').attr('type', 'checkbox');
     input.attr('data-row-id', id);
     input.on('click', function() {
-      if (_this.table.hasClassOfRow(id, _this.rowSelectedClass)) {
-        return _this.applicationGridService.unselect(_this.table.selector(), id);
+      if (_this.table.hasClassOfRow(_this.table.rowIdOfGlobal(id), _this.rowSelectedClass)) {
+        return _this.applicationGridService.unselect(_this.table.tableId, id);
       } else {
-        return _this.applicationGridService.select(_this.table.selector(), id);
+        return _this.applicationGridService.select(_this.table.tableId, id);
       }
     });
     return tr.append($('<td></td>').append(input));
   };
 
   ExcelMoveMode.prototype.beforeRowSelect = function(id) {
-    return $('input[data-row-id=' + id + ']').prop('checked', true);
+    return $('input[data-row-id="' + id + '"]').prop('checked', true);
   };
 
   ExcelMoveMode.prototype.beforeRowUnselect = function(id) {
-    return $('input[data-row-id=' + id + ']').prop('checked', false);
+    return $('input[data-row-id="' + id + '"]').prop('checked', false);
   };
 
   ExcelMoveMode.prototype.move = function(input, column) {
-    var _this = this;
+    var columnId, rowId, tableId,
+      _this = this;
 
+    tableId = this.table.tableId;
+    rowId = column.parents().attr('data-id').split('.')[2];
+    columnId = column.attr('data-column');
     input.on('keydown', function(event) {
-      var nextColumn, nextRow, prevColumn, prevRow;
+      var nextColumn, nextRow, prevColumn, prevRow, value;
 
       if (event.which === 9) {
         event.preventDefault();
-        input.replaceWith($('<span></span>').text(input.val()));
+        value = input.val();
+        _this.applicationGridService.updateColumn(tableId, rowId, columnId, value);
+        input.replaceWith($('<span></span>').text(value));
         if (event.shiftKey === true) {
           _this.table._editPreviousCell(column);
         } else {
@@ -448,13 +466,15 @@ ExcelMoveMode = (function() {
       }
       if (event.which === 13) {
         input.replaceWith($('<span></span>').text(input.val()));
+        value = input.val();
+        _this.applicationGridService.updateColumn(tableId, rowId, columnId, value);
         if (event.shiftKey === true) {
           prevRow = $(column.parent().prev());
-          prevColumn = prevRow.find('td[data-column=' + column.attr('data-column') + ']');
+          prevColumn = prevRow.find('td[data-column="' + column.attr('data-column') + '"]');
           return _this.table._editCell(prevColumn);
         } else {
           nextRow = $(column.parent().next());
-          nextColumn = nextRow.find('td[data-column=' + column.attr('data-column') + ']');
+          nextColumn = nextRow.find('td[data-column="' + column.attr('data-column') + '"]');
           return _this.table._editCell(nextColumn);
         }
       }

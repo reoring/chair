@@ -18,8 +18,8 @@ class JQueryAjaxRowRepository extends RowRepository
         @_grids[gridId][rowId] = row
 
     rowOfId: (gridId, rowId, callback)->
-        throw new Error("Missing argument: gridId") unless gridId
-        throw new Error("Missing argument: rowId") unless rowId
+        callback("Missing argument: gridId", null) unless gridId
+        callback("Missing argument: rowId", null) unless rowId
 
         if @_grids[gridId]?[rowId]?
             callback(null, @_grids[gridId][rowId])

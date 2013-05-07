@@ -3,6 +3,31 @@ var GridService;
 GridService = (function() {
   function GridService() {}
 
+  GridService.prototype.startup = function(gridId, columnsConfig, ajaxURL) {
+    var columns, config, formats, grid, _i, _len;
+
+    if (!gridId) {
+      throw new Error('Grid ID is required');
+    }
+    if (!columnsConfig) {
+      throw new Error('Columns Config are required');
+    }
+    if (!ajaxURL) {
+      throw new Error('Ajax URL is required');
+    }
+    columnsConfig = JSON.parse(columnsConfig);
+    columns = [];
+    for (_i = 0, _len = columnsConfig.length; _i < _len; _i++) {
+      config = columnsConfig[_i];
+      formats = [];
+      columns.push(new Column(config.id, config.title, formats));
+    }
+    grid = new Grid(gridId, columns);
+    DomainRegistry.gridRepository().add(grid);
+    DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(ajaxURL));
+    return null;
+  };
+
   GridService.prototype.select = function(gridId, rowId) {
     DomainRegistry.rowRepository().rowOfId(gridId, rowId, function(error, row) {
       if (error) {

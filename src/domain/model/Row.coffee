@@ -6,6 +6,7 @@ class Row
 
         @deleted = false
         @selected = false
+        @updatedColumns = []
 
         DomainEvent.subscribe 'AllRowsSelected', (event)=>
             @select() if event.gridId == @gridId
@@ -16,6 +17,7 @@ class Row
     updateColumn: (columnId, columnValue)->
         if @columns[columnId]
             @columns[columnId] = columnValue
+            @updatedColumns.push(columnId)
             DomainEvent.publish('ColumnUpdated', new ColumnUpdated(@gridId, @id, columnId, columnValue))
         null
 

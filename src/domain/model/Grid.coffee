@@ -94,6 +94,7 @@ class GridChanged
                 id: row.id
                 columns: row.columns
                 selected: row.selected
+                updatedColumns: row.updatedColumns
             }
 
     serialize: ()->

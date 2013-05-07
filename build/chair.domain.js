@@ -292,7 +292,8 @@ GridChanged = (function() {
       this.rows.push({
         id: row.id,
         columns: row.columns,
-        selected: row.selected
+        selected: row.selected,
+        updatedColumns: row.updatedColumns
       });
     }
   }
@@ -394,6 +395,7 @@ Row = (function() {
     }
     this.deleted = false;
     this.selected = false;
+    this.updatedColumns = [];
     DomainEvent.subscribe('AllRowsSelected', function(event) {
       if (event.gridId === _this.gridId) {
         return _this.select();
@@ -409,6 +411,7 @@ Row = (function() {
   Row.prototype.updateColumn = function(columnId, columnValue) {
     if (this.columns[columnId]) {
       this.columns[columnId] = columnValue;
+      this.updatedColumns.push(columnId);
       DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));
     }
     return null;

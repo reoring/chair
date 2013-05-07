@@ -31,7 +31,7 @@
 # Event subscription
 #
 DomainEvent.subscribe '*', (event, eventName)->
-    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+    console.log "I got #{eventName}: ", JSON.stringify(event)
 
 #
 # Sample starting-up code for client
@@ -53,22 +53,29 @@ columnConfigJSON = """
     }
 ]
 """
-ajaxURL = './datasource.json'
+ajaxURL = '/build/datasource.json'
 applicationGridService.startup(gridId, columnConfigJSON, ajaxURL)
 
 #
 # Grid manipulation in client code
 #
 applicationGridService.change(gridId, 1, 20)
-
+    
 setTimeout(
     ()->
-        applicationGridService.select(gridId, '1')
-        applicationGridService.updateColumn(gridId, '1', 'name', 'suinyeze')
-        applicationGridService.updateColumn(gridId, '1', 'age', '27')
-        applicationGridService.unselectAll(gridId)
-        applicationGridService.removeRow(gridId, '1')
-        applicationGridService.removeRow(gridId, '2')
+        DomainRegistry.rowRepository().rowOfId gridId, '1', (erorr, row)=>
+
+            applicationGridService.select(gridId, '1')
+
+            applicationGridService.updateColumn(gridId, '1', 'name', 'suinyeze')
+            applicationGridService.updateColumn(gridId, '1', 'age', '27')
+
+            applicationGridService.unselectAll(gridId)
+
+            applicationGridService.removeRow(gridId, '1')
+            applicationGridService.removeRow(gridId, '2')
+
+            applicationGridService.change(gridId, 1, 20)
     , 500
 )
 

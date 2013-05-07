@@ -29,6 +29,10 @@
         background: #eef;
     }
 
+    td.column_modified {
+        border-left: 2px solid #AEF26D;
+    }
+
     .table tr {
         cursor: pointer;
     }
@@ -76,6 +80,7 @@
 
 <input type="text" name="name" />
 <input type="text" name="age" />
+<input type="text" name="flag" />
 <input id="add_button" type="button" value="追加" />
 
 <br/>
@@ -119,6 +124,7 @@ $ ->
 
     $("#select_all").on "click", ->
         viewController.selectAll()
+        viewController.movePageTo(2)
 
     $("#unselect_all").on "click", ->
         viewController.unselectAll()
@@ -127,7 +133,8 @@ $ ->
         viewController.add $("input[name=name]").val(),
                             {
                                 name: $("input[name=name]").val(),
-                                age: $("input[name=age]").val()
+                                age:  $("input[name=age]").val(),
+                                flag: $("input[name=flag]").val()
                             }
 
 </script>

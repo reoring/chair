@@ -67,8 +67,14 @@ setTimeout(
 
             applicationGridService.select(gridId, '1')
 
-            applicationGridService.updateColumn(gridId, '1', 'name', 'suinyeze')
+            # Idempotency test
+            applicationGridService.updateColumn(gridId, '1', 'name', 'suin')
+
+            # Idempotency test
             applicationGridService.updateColumn(gridId, '1', 'age', '27')
+            applicationGridService.updateColumn(gridId, '1', 'age', '27')
+
+            applicationGridService.updateColumn(gridId, '1', 'name', 'suinyeze')
 
             applicationGridService.unselectAll(gridId)
 

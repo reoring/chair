@@ -16,6 +16,9 @@ class Row
 
     updateColumn: (columnId, columnValue)->
         if @columns[columnId]
+            if @columns[columnId] is columnValue
+                # Idempotency
+                return null
             @columns[columnId] = columnValue
             @updatedColumns.push(columnId)
             DomainEvent.publish('ColumnUpdated', new ColumnUpdated(@gridId, @id, columnId, columnValue))

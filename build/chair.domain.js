@@ -410,6 +410,9 @@ Row = (function() {
 
   Row.prototype.updateColumn = function(columnId, columnValue) {
     if (this.columns[columnId]) {
+      if (this.columns[columnId] === columnValue) {
+        return null;
+      }
       this.columns[columnId] = columnValue;
       this.updatedColumns.push(columnId);
       DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));

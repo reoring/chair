@@ -74,4 +74,6 @@ class ExcelMoveMode
 					@table._editCell nextColumn
 
 		input.on 'blur', =>
+			value = input.val()
+			@applicationGridService.updateColumn tableId, rowId, columnId, value
 			input.replaceWith $('<span></span>').text input.val()

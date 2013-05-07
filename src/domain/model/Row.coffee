@@ -15,13 +15,14 @@ class Row
             @unselect() if event.gridId == @gridId
 
     updateColumn: (columnId, columnValue)->
-        if @columns[columnId]
+        if columnId of @columns
             if @columns[columnId] is columnValue
                 # Idempotency
                 return null
-            @columns[columnId] = columnValue
-            @updatedColumns.push(columnId)
-            DomainEvent.publish('ColumnUpdated', new ColumnUpdated(@gridId, @id, columnId, columnValue))
+            else
+                @columns[columnId] = columnValue
+                @updatedColumns.push(columnId)
+                DomainEvent.publish('ColumnUpdated', new ColumnUpdated(@gridId, @id, columnId, columnValue))
         null
 
     remove: ()->

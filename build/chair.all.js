@@ -1,4 +1,4 @@
-var AjaxDataSource, AllRowsSelected, AllRowsUnselected, ArrayDataSource, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController,
+var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1319,32 +1319,6 @@ SequenceMoveMode = (function() {
   };
 
   return SequenceMoveMode;
-
-})();
-
-AjaxDataSource = (function() {
-  function AjaxDataSource(url) {
-    this.url = url;
-  }
-
-  AjaxDataSource.prototype.retrieve = function(callback, parameter) {
-    return $.get(this.url, parameter, function(response) {
-      return callback(response);
-    });
-  };
-
-  return AjaxDataSource;
-
-})();
-
-ArrayDataSource = (function() {
-  function ArrayDataSource() {}
-
-  ArrayDataSource.prototype.retrieve = function(callback, parameter) {
-    return callback([["suin", 26], ["reoring", 300], ["nouphet", 300000]]);
-  };
-
-  return ArrayDataSource;
 
 })();
 

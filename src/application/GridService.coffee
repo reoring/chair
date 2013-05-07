@@ -49,6 +49,13 @@ class GridService
             grid.unselectAllRows()
         null
 
+    append: (gridId, rowId, columnValues)->
+        DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
+            throw new Error(error) if error
+            return null if grid is null
+            grid.append new Row(rowId, columnValues)
+        null
+
     updateColumn: (gridId, rowId, columnId, columnValue)->
         DomainRegistry.gridRepository().gridOfId gridId, (error, grid)->
             throw new Error(error) if error

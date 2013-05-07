@@ -30,6 +30,12 @@ class Table
                 nextRow = currentRow.prev()
                 @cursorRow nextRow.attr 'data-id' unless nextRow.length is 0
 
+    reset: ->
+        @rows = {}
+        @rowsById = {}
+        @numberOfRows = 0
+        @currentCursor = undefined
+
     selector: ->
         @table.selector
 
@@ -136,8 +142,17 @@ class Table
         row = $ @findRow(id)
         row.addClass(className) unless row.hasClass(className)
 
+    addClassToColumn: (rowId, columnName, className) ->
+        row = @findRow rowId
+        column = row.find 'td[data-column="'+columnName+'"]'
+        column.addClass className
+
     removeClassFromRow: (id, className) ->
         @findRow(id).removeClass(className)
+
+    removeAllRows: () ->
+        @reset()
+        @table.find('tbody').html ''
 
     removeAllClassesFromRow: (id) ->
         row = @findRow(id)

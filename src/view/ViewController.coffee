@@ -4,7 +4,7 @@ class ViewController
 		@applicationGridService = new GridService
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
 
-	startup: (page, rowsPerGrid)->
+	startup: (page, @rowsPerGrid)->
 		moveMode = MoveModeFactory.create @moveModeName
 
 		@table = new Table @gridId, $(@tableSelector), moveMode, @applicationGridService
@@ -14,18 +14,24 @@ class ViewController
 
 		@applicationGridService.change(@gridId, page, rowsPerGrid)
 
-		#DomainEvent.subscribe '*', (event, eventName)->
-		#    console.log "I got #{eventName}: #{JSON.stringify(event)}"
+		# DomainEvent.subscribe '*', (event, eventName)->
+		#     console.log "I got #{eventName}: #{JSON.stringify(event)}"
 
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
+			@table.removeAllRows()
+			
 			if event.gridId is @gridId
 				for row in event.rows
 					@table.insert row.columns, row.id
+					@table.selectRow row.id, @rowSelectedClass if row.selected is true
+
+					for columnId in row.updatedColumns
+						@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
 
 			@cursor()
 
 		DomainEvent.subscribe 'ColumnUpdated', (event, eventName)=>
-			@table.addClassToRow @table.rowIdOfGlobal(event.rowId), @rowModifiedClass
+			@table.addClassToColumn(@table.rowIdOfGlobal(event.rowId), event.columnId, 'column_modified')
 
 		DomainEvent.subscribe 'RowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId if event.gridId is @gridId
@@ -37,14 +43,17 @@ class ViewController
 			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @gridId
 
 
-	add: (id, row)->
-		@grid.append new Row(id, row)
+	add: (rowId, values)->
+		@applicationGridService.append @gridId, rowId, values
 
 	selectAll: () ->
 		@applicationGridService.selectAll(@gridId)
 
 	unselectAll: () ->
 		@applicationGridService.unselectAll(@gridId)
+
+	movePageTo: (page) ->
+		@applicationGridService.change @gridId, page, @rowsPerGrid
 
 	cursor: (rowId) ->
 		@table.cursorRow rowId unless rowId is undefined

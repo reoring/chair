@@ -1,4 +1,4 @@
-var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController,
+var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, InMemoryRowContainer, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -561,28 +561,21 @@ JQueryAjaxRowRepository = (function(_super) {
 
   function JQueryAjaxRowRepository(ajaxURL) {
     this.ajaxURL = ajaxURL;
-    this._grids = {};
+    this.gridContainer = new InMemoryRowContainer();
   }
 
   JQueryAjaxRowRepository.prototype.add = function(row) {
-    var gridId, rowId;
-
     if (!row.id) {
       throw new Error("Row ID is not specified");
     }
     if (!row.gridId) {
       throw new Error("Grid ID is not specified");
     }
-    gridId = row.gridId;
-    rowId = row.id;
-    if (!(gridId in this._grids)) {
-      this._grids[gridId] = {};
-    }
-    return this._grids[gridId][rowId] = row;
+    return this.gridContainer.add(row);
   };
 
   JQueryAjaxRowRepository.prototype.rowOfId = function(gridId, rowId, callback) {
-    var _ref;
+    var row;
 
     if (!gridId) {
       callback("Missing argument: gridId", null);
@@ -590,8 +583,9 @@ JQueryAjaxRowRepository = (function(_super) {
     if (!rowId) {
       callback("Missing argument: rowId", null);
     }
-    if (((_ref = this._grids[gridId]) != null ? _ref[rowId] : void 0) != null) {
-      return callback(null, this._grids[gridId][rowId]);
+    row = this.gridContainer.get(rowId, gridId);
+    if (row instanceof Row) {
+      return callback(null, row);
     } else {
       return callback(null, null);
     }
@@ -609,7 +603,7 @@ JQueryAjaxRowRepository = (function(_super) {
       },
       dataType: 'json',
       success: function(data) {
-        var columns, gridId, name, row, rows, rowsForResponse, total, value, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+        var gridId, row, rowData, rows, rowsForResponse, total, _i, _j, _len, _len1, _ref, _ref1;
 
         if (typeof data !== 'object') {
           return callback("Response is not object", null);
@@ -636,25 +630,10 @@ JQueryAjaxRowRepository = (function(_super) {
         rowsForResponse = [];
         _ref1 = data.rows;
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          row = _ref1[_j];
-          if (((_ref2 = _this._grids[gridId]) != null ? _ref2[row.id] : void 0) != null) {
-            rowsForResponse.push(_this._grids[gridId][row.id]);
-          } else {
-            columns = {};
-            for (name in row) {
-              if (!__hasProp.call(row, name)) continue;
-              value = row[name];
-              if (name !== 'id') {
-                columns[name] = value;
-              }
-            }
-            if (_this._grids[gridId] === void 0) {
-              _this._grids[gridId] = {};
-            }
-            row = new Row(row.id, columns, gridId);
-            _this._grids[gridId][row.id] = row;
-            rowsForResponse.push(row);
-          }
+          rowData = _ref1[_j];
+          _this.gridContainer.addByData(gridId, rowData);
+          row = _this.gridContainer.get(gridId, rowData.id);
+          rowsForResponse.push(row);
         }
         callback(null, rowsForResponse);
         return null;
@@ -668,6 +647,96 @@ JQueryAjaxRowRepository = (function(_super) {
   return JQueryAjaxRowRepository;
 
 })(RowRepository);
+
+InMemoryRowContainer = (function() {
+  function InMemoryRowContainer() {
+    this.grids = {};
+  }
+
+  InMemoryRowContainer.prototype.addByData = function(gridId, rowData) {
+    var columns, rowId;
+
+    if (!gridId) {
+      throw new Error('Grid ID is required');
+    }
+    if (!(rowData instanceof Object)) {
+      throw new Error('Row data must be instance of Object');
+    }
+    if (rowData instanceof Row) {
+      throw new Error('Row data must NOT be instance of Row');
+    }
+    if (!rowData.id) {
+      throw new Error('Row must contain "id" key');
+    }
+    rowId = rowData.id;
+    if (this._rowExists(gridId, rowId)) {
+      return;
+    }
+    columns = this._removeIdFromColumns(rowData, 'id');
+    this.add(new Row(rowId, columns, gridId));
+    return null;
+  };
+
+  InMemoryRowContainer.prototype.add = function(row) {
+    var gridId, rowId;
+
+    if (!(row instanceof Row)) {
+      throw new Error('Row must be instanceof Row');
+    }
+    if (!row.id) {
+      throw new Error('Row ID is required');
+    }
+    if (!row.gridId) {
+      throw new Error('Row grid ID is required');
+    }
+    gridId = row.gridId;
+    rowId = row.id;
+    if (this.grids[gridId] === void 0) {
+      this.grids[gridId] = {};
+    }
+    this.grids[gridId][rowId] = row;
+    return null;
+  };
+
+  InMemoryRowContainer.prototype.get = function(gridId, rowId) {
+    if (!gridId) {
+      throw new Error('Grid ID is required');
+    }
+    if (!rowId) {
+      throw new Error('Row ID is required');
+    }
+    if (this._rowExists(gridId, rowId)) {
+      return this.grids[gridId][rowId];
+    } else {
+      return null;
+    }
+  };
+
+  InMemoryRowContainer.prototype._rowExists = function(gridId, rowId) {
+    var _ref;
+
+    return ((_ref = this.grids[gridId]) != null ? _ref[rowId] : void 0) != null;
+  };
+
+  InMemoryRowContainer.prototype._removeIdFromColumns = function(rowData, idKey) {
+    var columns, name, value;
+
+    columns = {};
+    for (name in rowData) {
+      if (!__hasProp.call(rowData, name)) continue;
+      value = rowData[name];
+      if (name === idKey) {
+
+      } else {
+        columns[name] = value;
+      }
+    }
+    return columns;
+  };
+
+  return InMemoryRowContainer;
+
+})();
 
 GridService = (function() {
   function GridService() {}

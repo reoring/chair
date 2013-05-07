@@ -7,24 +7,23 @@ class RowRepository
 class JQueryAjaxRowRepository extends RowRepository
     constructor: (ajaxURL)->
         @ajaxURL = ajaxURL
-        @_grids = {}
+        @gridContainer = new InMemoryRowContainer()
 
     add: (row)->
         throw new Error("Row ID is not specified") unless row.id
         throw new Error("Grid ID is not specified") unless row.gridId
-        gridId = row.gridId
-        rowId  = row.id
-        @_grids[gridId] = {} unless gridId of @_grids 
-        @_grids[gridId][rowId] = row
+        @gridContainer.add(row)
 
     rowOfId: (gridId, rowId, callback)->
         callback("Missing argument: gridId", null) unless gridId
         callback("Missing argument: rowId", null) unless rowId
 
-        if @_grids[gridId]?[rowId]?
-            callback(null, @_grids[gridId][rowId])
+        row = @gridContainer.get(rowId, gridId)
+
+        if row instanceof Row
+            callback(null, row)
         else
-            # here needs to ajax?
+            # here needs to ajax to fetch that Row?
             callback(null, null)
 
     rowsSpecifiedBy: (condition, callback)->
@@ -46,20 +45,10 @@ class JQueryAjaxRowRepository extends RowRepository
 
                 rowsForResponse = []
 
-                for row in data.rows
-                    if @_grids[gridId]?[row.id]?
-                        rowsForResponse.push(@_grids[gridId][row.id])
-                    else
-                        columns = {}
-                        for own name, value of row
-                            columns[name] = value if name isnt 'id'
-
-                        @_grids[gridId] = {} if @_grids[gridId] is undefined
-
-                        row = new Row(row.id, columns, gridId)
-
-                        @_grids[gridId][row.id] = row
-                        rowsForResponse.push(row)
+                for rowData in data.rows
+                    @gridContainer.addByData(gridId, rowData)
+                    row = @gridContainer.get(gridId, rowData.id)
+                    rowsForResponse.push(row)
 
                 callback(null, rowsForResponse)
                 null
@@ -68,4 +57,54 @@ class JQueryAjaxRowRepository extends RowRepository
                 return callback(error, null)
         }
 
+class InMemoryRowContainer
+    constructor: ()->
+        @grids = {}
+        
+    addByData: (gridId, rowData)->
+        throw new Error('Grid ID is required') unless gridId
+        throw new Error('Row data must be instance of Object') if rowData not instanceof Object
+        throw new Error('Row data must NOT be instance of Row') if rowData instanceof Row
+        throw new Error('Row must contain "id" key') unless rowData.id
+        
+        rowId = rowData.id
+        
+        if @_rowExists(gridId, rowId)
+            return 
+
+        columns = @_removeIdFromColumns(rowData, 'id')
+        @add(new Row(rowId, columns, gridId))
+        null
+    
+    add: (row)->
+        throw new Error('Row must be instanceof Row') if row not instanceof Row
+        throw new Error('Row ID is required') unless row.id
+        throw new Error('Row grid ID is required') unless row.gridId
+        gridId = row.gridId
+        rowId = row.id
+        if @grids[gridId] is undefined
+            @grids[gridId] = {}
+        @grids[gridId][rowId] = row
+        null
+        
+    get: (gridId, rowId)->
+        throw new Error('Grid ID is required') unless gridId
+        throw new Error('Row ID is required') unless rowId
+        if @_rowExists(gridId, rowId)
+            return @grids[gridId][rowId]
+        else
+            return null
+   
+    _rowExists: (gridId, rowId)->
+        return @grids[gridId]?[rowId]?
+        
+    _removeIdFromColumns: (rowData, idKey)->
+        columns = {}
+        for own name, value of rowData
+            if name is idKey
+                # no-op
+            else
+                columns[name] = value
+        return columns
+        
 

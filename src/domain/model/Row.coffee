@@ -47,7 +47,7 @@ class ColumnUpdated
         throw new Error('Grid ID is required') unless @gridId
         throw new Error('Row ID is reuqired') unless @rowId
         throw new Error('Column ID is required') unless @columnId
-        throw new Error('Column Value is required') unless @columnValue
+        throw new Error('Column Value is required') unless @columnValue?
     serialize: ()->
         return {
             gridId: @gridId

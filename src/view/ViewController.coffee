@@ -7,7 +7,7 @@ class ViewController
 	startup: (page, @rowsPerGrid)->
 		moveMode = MoveModeFactory.create @moveModeName
 
-		@table = new Table @gridId, $(@tableSelector), moveMode, @applicationGridService
+		@table = new Table @gridId, $(@tableSelector), moveMode, @applicationGridService, @columnConfigJSON
 		@table.header JSON.parse(@columnConfigJSON)
 
 		moveMode.init @table, @applicationGridService, @rowSelectedClass

@@ -1,8 +1,10 @@
 class Table
-    constructor: (@tableId, @table, @moveMode, @gridService) ->
+    constructor: (@tableId, @table, @moveMode, @gridService, columnConfigJSON) ->
         @rows = {}
         @rowsById = {}
         @numberOfRows = 0
+
+        @columnConfig = JSON.parse(columnConfigJSON)
 
         @currentCursor = undefined
 
@@ -111,11 +113,9 @@ class Table
         @rows[@numberOfRows++] = {id: id, data: data}
         @rowsById[id] = data
 
-        columnIndex = 0
-
-        for column, value of data
-            tr.append @createRowColumn @columns[columnIndex], value
-            columnIndex++
+        for columnConfig in @columnConfig
+            column = columnConfig.id
+            tr.append @createRowColumn column, data[column]
 
         @table.find('tbody').append tr
 

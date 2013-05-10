@@ -114,8 +114,7 @@ class Table
         @rowsById[id] = data
 
         for columnConfig in @columnConfig
-            column = columnConfig.id
-            tr.append @createRowColumn column, data[column]
+            tr.append @createRowColumn columnConfig, data[columnConfig.id]
 
         @table.find('tbody').append tr
 

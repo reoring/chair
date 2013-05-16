@@ -14,8 +14,10 @@ class ViewController
 
 		@applicationGridService.change(@gridId, page, rowsPerGrid)
 
+		@table.setFilterRow() unless @table.filterRowExists()
+
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
-			@table.removeAllRows()
+			@table.removeAllRowsWithout('filter')
 
 			if event.gridId is @gridId
 				for row in event.rows
@@ -25,7 +27,6 @@ class ViewController
 					for columnId in row.updatedColumns
 						@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
 
-				@table.setFilterRow(event.filter)
 
 			@cursor()
 

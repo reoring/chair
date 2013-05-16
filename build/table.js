@@ -152,6 +152,11 @@ Table = (function() {
     return typeof (_base1 = this.moveMode).afterInsert === "function" ? _base1.afterInsert(id, tr) : void 0;
   };
 
+  Table.prototype.filterRowExists = function() {
+    console.log(this.table.find('tbody tr.filter').length);
+    return this.table.find('tbody tr.filter').length !== 0;
+  };
+
   Table.prototype.setFilterRow = function(filter) {
     var columnConfig, tr, _base, _i, _len, _ref;
 
@@ -254,6 +259,15 @@ Table = (function() {
   Table.prototype.removeAllRows = function() {
     this.reset();
     return this.table.find('tbody').html('');
+  };
+
+  Table.prototype.removeAllRowsWithout = function(ignoredRowClass) {
+    this.reset();
+    return this.table.find('tbody tr').each(function(index, element) {
+      if (!$(element).hasClass(ignoredRowClass)) {
+        return $(element).remove();
+      }
+    });
   };
 
   Table.prototype.removeAllClassesFromRow = function(id) {

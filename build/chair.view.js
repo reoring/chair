@@ -23,10 +23,13 @@ ViewController = (function() {
     this.table.header(JSON.parse(this.columnConfigJSON));
     moveMode.init(this.table, this.applicationGridService, this.rowSelectedClass);
     this.applicationGridService.change(this.gridId, page, rowsPerGrid);
+    if (!this.table.filterRowExists()) {
+      this.table.setFilterRow();
+    }
     DomainEvent.subscribe('GridChanged', function(event, eventName) {
       var columnId, row, _i, _j, _len, _len1, _ref, _ref1;
 
-      _this.table.removeAllRows();
+      _this.table.removeAllRowsWithout('filter');
       if (event.gridId === _this.gridId) {
         _ref = event.rows;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -41,7 +44,6 @@ ViewController = (function() {
             _this.table.addClassToColumn(_this.table.rowIdOfGlobal(row.id), columnId, 'column_modified');
           }
         }
-        _this.table.setFilterRow(event.filter);
       }
       return _this.cursor();
     });

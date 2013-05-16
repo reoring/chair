@@ -120,6 +120,10 @@ class Table
 
         @moveMode.afterInsert? id, tr
 
+    filterRowExists: () ->
+        console.log @table.find('tbody tr.filter').length
+        return @table.find('tbody tr.filter').length isnt 0
+
     setFilterRow: (filter) ->
         filter = {} if filter is undefined
 
@@ -188,6 +192,11 @@ class Table
     removeAllRows: () ->
         @reset()
         @table.find('tbody').html ''
+
+    removeAllRowsWithout: (ignoredRowClass) ->
+        @reset()
+        @table.find('tbody tr').each (index, element) ->
+            $(element).remove() unless $(element).hasClass ignoredRowClass
 
     removeAllClassesFromRow: (id) ->
         row = @findRow(id)

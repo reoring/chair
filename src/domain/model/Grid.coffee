@@ -34,13 +34,13 @@ class Grid
     rows: ()->
         return (row for own key, row of @_rows)
 
-    change: (rows)->
+    change: (rows, page, total, rowsPerGrid, filter)->
         @_rows = {}
 
         for row in rows
             @_addRow(row)
 
-        DomainEvent.publish("GridChanged", new GridChanged(@id, rows))
+        DomainEvent.publish("GridChanged", new GridChanged(@id, rows, page, total, rowsPerGrid, filter))
 
     removeRow: (rowId)->
         if @_hasRow(rowId)
@@ -84,7 +84,7 @@ class AllRowsUnselected
         return {gridId: @gridId}
 
 class GridChanged
-    constructor: (@gridId, rows)->
+    constructor: (@gridId, rows, @page, @total, @rowsPerGrid, @filter)->
         throw new Error('Grid ID is required') unless @gridId
         throw new Error('Rows are required') unless rows
         @rows = []
@@ -97,5 +97,14 @@ class GridChanged
                 updatedColumns: row.updatedColumns
             }
 
+    page: ->
+        return @page
+
+    total: ->
+        return @total
+
+    filter: ->
+        return @filter
+
     serialize: ()->
-        return {gridId: @gridId, rows: @rows}
+        return {gridId: @gridId, rows: @rows, page: @page, total: @total, rowsPerGrid: @rowsPerGrid, filter: @filter}

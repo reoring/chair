@@ -1,4 +1,4 @@
-var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, InMemoryRowContainer, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController,
+var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, InMemoryRowContainer, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController, ViewEvent, ViewFilterChanged,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -166,7 +166,7 @@ Grid = (function() {
     }).call(this);
   };
 
-  Grid.prototype.change = function(rows) {
+  Grid.prototype.change = function(rows, page, total, rowsPerGrid, filter) {
     var row, _i, _len;
 
     this._rows = {};
@@ -174,7 +174,7 @@ Grid = (function() {
       row = rows[_i];
       this._addRow(row);
     }
-    return DomainEvent.publish("GridChanged", new GridChanged(this.id, rows));
+    return DomainEvent.publish("GridChanged", new GridChanged(this.id, rows, page, total, rowsPerGrid, filter));
   };
 
   Grid.prototype.removeRow = function(rowId) {
@@ -276,10 +276,14 @@ AllRowsUnselected = (function() {
 })();
 
 GridChanged = (function() {
-  function GridChanged(gridId, rows) {
+  function GridChanged(gridId, rows, page, total, rowsPerGrid, filter) {
     var row, _i, _len;
 
     this.gridId = gridId;
+    this.page = page;
+    this.total = total;
+    this.rowsPerGrid = rowsPerGrid;
+    this.filter = filter;
     if (!this.gridId) {
       throw new Error('Grid ID is required');
     }
@@ -298,10 +302,26 @@ GridChanged = (function() {
     }
   }
 
+  GridChanged.prototype.page = function() {
+    return this.page;
+  };
+
+  GridChanged.prototype.total = function() {
+    return this.total;
+  };
+
+  GridChanged.prototype.filter = function() {
+    return this.filter;
+  };
+
   GridChanged.prototype.serialize = function() {
     return {
       gridId: this.gridId,
-      rows: this.rows
+      rows: this.rows,
+      page: this.page,
+      total: this.total,
+      rowsPerGrid: this.rowsPerGrid,
+      filter: this.filter
     };
   };
 
@@ -312,7 +332,7 @@ GridChanged = (function() {
 GridChangeService = (function() {
   function GridChangeService() {}
 
-  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid) {
+  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -334,13 +354,17 @@ GridChangeService = (function() {
       condition = {
         gridId: grid.id,
         page: page,
-        rowsPerGrid: rowsPerGrid
+        rowsPerGrid: rowsPerGrid,
+        filter: filter
       };
-      return DomainRegistry.rowRepository().rowsSpecifiedBy(condition, function(error, rows) {
+      return DomainRegistry.rowRepository().rowsSpecifiedBy(condition, function(error, response) {
         if (error) {
           throw new Error(error);
         }
-        return grid.change(rows);
+        if (condition.filter !== void 0) {
+          filter = JSON.parse(condition.filter);
+        }
+        return grid.change(response.rows, condition.page, response.total, condition.rowsPerGrid, filter);
       });
     });
     return null;
@@ -409,13 +433,14 @@ Row = (function() {
   }
 
   Row.prototype.updateColumn = function(columnId, columnValue) {
-    if (this.columns[columnId]) {
+    if (columnId in this.columns) {
       if (this.columns[columnId] === columnValue) {
         return null;
+      } else {
+        this.columns[columnId] = columnValue;
+        this.updatedColumns.push(columnId);
+        DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));
       }
-      this.columns[columnId] = columnValue;
-      this.updatedColumns.push(columnId);
-      DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));
     }
     return null;
   };
@@ -461,7 +486,7 @@ ColumnUpdated = (function() {
     if (!this.columnId) {
       throw new Error('Column ID is required');
     }
-    if (!this.columnValue) {
+    if (this.columnValue == null) {
       throw new Error('Column Value is required');
     }
   }
@@ -597,16 +622,18 @@ JQueryAjaxRowRepository = (function(_super) {
   JQueryAjaxRowRepository.prototype.rowsSpecifiedBy = function(condition, callback) {
     var _this = this;
 
+    console.log(condition);
     return $.ajax({
       url: this.ajaxURL,
       data: {
         id: condition.gridId,
         page: condition.page,
-        rowsPerGrid: condition.rowsPerGrid
+        rowsPerGrid: condition.rowsPerGrid,
+        filter: condition.filter
       },
       dataType: 'json',
       success: function(data) {
-        var gridId, row, rowData, rows, rowsForResponse, total, _i, _j, _len, _len1, _ref, _ref1;
+        var gridId, response, row, rowData, rows, rowsForResponse, _i, _j, _len, _len1, _ref, _ref1;
 
         if (typeof data !== 'object') {
           return callback("Response is not object", null);
@@ -629,7 +656,6 @@ JQueryAjaxRowRepository = (function(_super) {
         }
         gridId = data.id;
         rows = data.rows;
-        total = data.total;
         rowsForResponse = [];
         _ref1 = data.rows;
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
@@ -638,7 +664,12 @@ JQueryAjaxRowRepository = (function(_super) {
           row = _this.gridContainer.get(gridId, rowData.id);
           rowsForResponse.push(row);
         }
-        callback(null, rowsForResponse);
+        response = {
+          gridId: gridId,
+          rows: rowsForResponse,
+          total: data.total
+        };
+        callback(null, response);
         return null;
       },
       error: function(xhr, status, error) {
@@ -821,6 +852,19 @@ GridService = (function() {
     return null;
   };
 
+  GridService.prototype.append = function(gridId, rowId, columnValues) {
+    DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return null;
+      }
+      return grid.append(new Row(rowId, columnValues));
+    });
+    return null;
+  };
+
   GridService.prototype.updateColumn = function(gridId, rowId, columnId, columnValue) {
     DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
       if (error) {
@@ -847,7 +891,7 @@ GridService = (function() {
     return null;
   };
 
-  GridService.prototype.change = function(gridId, page, rowsPerGrid) {
+  GridService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -857,7 +901,7 @@ GridService = (function() {
     if (!rowsPerGrid) {
       throw new Error('Rows Per Grid is required');
     }
-    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid);
+    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter);
     return null;
   };
 
@@ -866,7 +910,7 @@ GridService = (function() {
 })();
 
 Table = (function() {
-  function Table(tableId, table, moveMode, gridService) {
+  function Table(tableId, table, moveMode, gridService, columnConfigJSON) {
     var _this = this;
 
     this.tableId = tableId;
@@ -876,6 +920,7 @@ Table = (function() {
     this.rows = {};
     this.rowsById = {};
     this.numberOfRows = 0;
+    this.columnConfig = JSON.parse(columnConfigJSON);
     this.currentCursor = void 0;
     $(document).on('keydown', function(event) {
       var currentRow, nextRow, rowId;
@@ -908,6 +953,13 @@ Table = (function() {
       }
     });
   }
+
+  Table.prototype.reset = function() {
+    this.rows = {};
+    this.rowsById = {};
+    this.numberOfRows = 0;
+    return this.currentCursor = void 0;
+  };
 
   Table.prototype.selector = function() {
     return this.table.selector;
@@ -985,7 +1037,7 @@ Table = (function() {
   };
 
   Table.prototype.insert = function(data, id) {
-    var column, columnIndex, rowId, tr, value, _base, _base1;
+    var columnConfig, rowId, tr, _base, _base1, _i, _len, _ref;
 
     if (id === void 0) {
       id = this.guid();
@@ -1000,14 +1052,31 @@ Table = (function() {
       data: data
     };
     this.rowsById[id] = data;
-    columnIndex = 0;
-    for (column in data) {
-      value = data[column];
-      tr.append(this.createRowColumn(this.columns[columnIndex], value));
-      columnIndex++;
+    _ref = this.columnConfig;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      columnConfig = _ref[_i];
+      tr.append(this.createRowColumn(columnConfig, data[columnConfig.id]));
     }
     this.table.find('tbody').append(tr);
     return typeof (_base1 = this.moveMode).afterInsert === "function" ? _base1.afterInsert(id, tr) : void 0;
+  };
+
+  Table.prototype.setFilterRow = function(filter) {
+    var columnConfig, tr, _base, _i, _len, _ref;
+
+    if (filter === void 0) {
+      filter = {};
+    }
+    tr = $('<tr></tr>').addClass('filter');
+    if (typeof (_base = this.moveMode).beforeInsert === "function") {
+      _base.beforeInsert(void 0, tr);
+    }
+    _ref = this.columnConfig;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      columnConfig = _ref[_i];
+      tr.append(this.createFilterColumn(columnConfig, filter[columnConfig.id]));
+    }
+    return this.table.find('tbody').append(tr);
   };
 
   Table.prototype.createRowColumn = function(column, value) {
@@ -1020,6 +1089,34 @@ Table = (function() {
       td.addClass('disabled');
     }
     return td.append($('<span></span>').append(value));
+  };
+
+  Table.prototype.createFilterColumn = function(columnConfig, value) {
+    var input, td,
+      _this = this;
+
+    td = $('<td></td>');
+    input = $('<input></input>').attr('type', 'text').attr('data-filter-column', columnConfig.id).val(value).addClass('filter_input');
+    input.on('keyup', function() {
+      window.clearTimeout(_this.timeoutID);
+      return _this.timeoutID = setTimeout(function() {
+        var filterConditions;
+
+        filterConditions = [];
+        $('.filter_input').each(function(i, input) {
+          var columnId;
+
+          columnId = $(input).attr('data-filter-column');
+          value = $(input).val();
+          return filterConditions.push({
+            columnId: columnId,
+            value: value
+          });
+        });
+        return ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged(filterConditions));
+      }, 450);
+    });
+    return td.append(input);
   };
 
   Table.prototype.selectRow = function(rowId, cssClass) {
@@ -1051,8 +1148,21 @@ Table = (function() {
     }
   };
 
+  Table.prototype.addClassToColumn = function(rowId, columnName, className) {
+    var column, row;
+
+    row = this.findRow(rowId);
+    column = row.find('td[data-column="' + columnName + '"]');
+    return column.addClass(className);
+  };
+
   Table.prototype.removeClassFromRow = function(id, className) {
     return this.findRow(id).removeClass(className);
+  };
+
+  Table.prototype.removeAllRows = function() {
+    this.reset();
+    return this.table.find('tbody').html('');
   };
 
   Table.prototype.removeAllClassesFromRow = function(id) {
@@ -1182,7 +1292,7 @@ Table = (function() {
     if (column === false) {
       return false;
     }
-    input = $('<input type="text"></input>').val(column.text());
+    input = $('<input type="text"></input>').addClass('inline_edit').val(column.text());
     TableUIHelper.fitInputToCell(input, column);
     column.find("span").replaceWith(input);
     input.select();
@@ -1217,6 +1327,27 @@ Table = (function() {
   };
 
   return Table;
+
+})();
+
+ViewFilterChanged = (function() {
+  function ViewFilterChanged(filterConditions) {
+    this.filterConditions = filterConditions;
+  }
+
+  ViewFilterChanged.prototype.serialize = function() {
+    var condition, serializedFilterConditions, _i, _len, _ref;
+
+    serializedFilterConditions = {};
+    _ref = this.filterConditions;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      condition = _ref[_i];
+      serializedFilterConditions[condition.columnId] = condition.value;
+    }
+    return serializedFilterConditions;
+  };
+
+  return ViewFilterChanged;
 
 })();
 
@@ -1281,13 +1412,17 @@ ExcelMoveMode = (function() {
         return checkbox.prop('checked', true);
       }
     });
-    return tr.append($('<td></td>').append(input));
+    return tr.append($('<th></th>').append(input));
   };
 
   ExcelMoveMode.prototype.beforeInsert = function(id, tr) {
     var input,
       _this = this;
 
+    if (id === void 0) {
+      tr.append($('<td></td>'));
+      return;
+    }
     input = $('<input></input>').attr('type', 'checkbox');
     input.attr('data-row-id', id);
     input.on('click', function() {
@@ -1345,6 +1480,10 @@ ExcelMoveMode = (function() {
       }
     });
     return input.on('blur', function() {
+      var value;
+
+      value = input.val();
+      _this.applicationGridService.updateColumn(tableId, rowId, columnId, value);
       return input.replaceWith($('<span></span>').text(input.val()));
     });
   };
@@ -1410,25 +1549,37 @@ ViewController = (function() {
     var moveMode,
       _this = this;
 
+    this.page = page;
+    this.rowsPerGrid = rowsPerGrid;
     moveMode = MoveModeFactory.create(this.moveModeName);
-    this.table = new Table(this.gridId, $(this.tableSelector), moveMode, this.applicationGridService);
+    this.table = new Table(this.gridId, $(this.tableSelector), moveMode, this.applicationGridService, this.columnConfigJSON);
     this.table.header(JSON.parse(this.columnConfigJSON));
     moveMode.init(this.table, this.applicationGridService, this.rowSelectedClass);
     this.applicationGridService.change(this.gridId, page, rowsPerGrid);
     DomainEvent.subscribe('GridChanged', function(event, eventName) {
-      var row, _i, _len, _ref;
+      var columnId, row, _i, _j, _len, _len1, _ref, _ref1;
 
+      _this.table.removeAllRows();
       if (event.gridId === _this.gridId) {
         _ref = event.rows;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           row = _ref[_i];
           _this.table.insert(row.columns, row.id);
+          if (row.selected === true) {
+            _this.table.selectRow(row.id, _this.rowSelectedClass);
+          }
+          _ref1 = row.updatedColumns;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            columnId = _ref1[_j];
+            _this.table.addClassToColumn(_this.table.rowIdOfGlobal(row.id), columnId, 'column_modified');
+          }
         }
+        _this.table.setFilterRow(event.filter);
       }
       return _this.cursor();
     });
     DomainEvent.subscribe('ColumnUpdated', function(event, eventName) {
-      return _this.table.addClassToRow(_this.table.rowIdOfGlobal(event.rowId), _this.rowModifiedClass);
+      return _this.table.addClassToColumn(_this.table.rowIdOfGlobal(event.rowId), event.columnId, 'column_modified');
     });
     DomainEvent.subscribe('RowAppended', function(event, eventName) {
       if (event.gridId === _this.gridId) {
@@ -1440,15 +1591,18 @@ ViewController = (function() {
         return _this.table.selectRow(event.rowId, _this.rowSelectedClass);
       }
     });
-    return DomainEvent.subscribe('RowUnselected', function(event, eventName) {
+    DomainEvent.subscribe('RowUnselected', function(event, eventName) {
       if (event.gridId === _this.gridId) {
         return _this.table.unselectRow(event.rowId, _this.rowSelectedClass);
       }
     });
+    return ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
+      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, JSON.stringify(event));
+    });
   };
 
-  ViewController.prototype.add = function(id, row) {
-    return this.grid.append(new Row(id, row));
+  ViewController.prototype.add = function(rowId, values) {
+    return this.applicationGridService.append(this.gridId, rowId, values);
   };
 
   ViewController.prototype.selectAll = function() {
@@ -1457,6 +1611,11 @@ ViewController = (function() {
 
   ViewController.prototype.unselectAll = function() {
     return this.applicationGridService.unselectAll(this.gridId);
+  };
+
+  ViewController.prototype.movePageTo = function(page) {
+    this.page = page;
+    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid);
   };
 
   ViewController.prototype.cursor = function(rowId) {
@@ -1469,3 +1628,35 @@ ViewController = (function() {
   return ViewController;
 
 })();
+
+ViewEvent = {
+  channels: {
+    '*': []
+  },
+  publish: function(eventName, event) {
+    var eventData, subscriber, _i, _j, _len, _len1, _ref, _ref1;
+
+    if (!(eventName in this.channels)) {
+      this.channels[eventName] = [];
+    }
+    eventData = event.serialize();
+    _ref = this.channels['*'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      subscriber = _ref[_i];
+      subscriber(eventData, eventName);
+    }
+    _ref1 = this.channels[eventName];
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      subscriber = _ref1[_j];
+      subscriber(eventData, eventName);
+    }
+    return null;
+  },
+  subscribe: function(eventName, listener) {
+    if (!(eventName in this.channels)) {
+      this.channels[eventName] = [];
+    }
+    this.channels[eventName].push(listener);
+    return null;
+  }
+};

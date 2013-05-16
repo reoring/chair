@@ -9,7 +9,11 @@
     <script type="text/javascript" src="jquery-2.0.0.min.js"></script>
     <script type="text/javascript" src="coffee-script.js"></script>
     <script type="text/javascript" src="chair.all.js"></script>
+
+    <script type="text/javascript" src="jquery.paginate.js"></script>
+
     <link href="bootstrap-combined.min.css" rel="stylesheet">
+    <link href="pagination.style.css" rel="stylesheet">
 
     <style type="text/css">
 
@@ -50,7 +54,7 @@
         background: #eee;
     }
 
-    .table tr input {
+    .table input.inline_edit {
         border: 1px solid #ddd;
         -webkit-border-radius: 0;
         border-radius: 0;
@@ -62,6 +66,12 @@
         border-left: 3px solid red;
     }
 
+    .table input.filter_input {
+        width: 100%;
+        height: 100%; 
+        padding: 2px;
+        font-size: 1.2em;
+    }
     </style>
 </head>
 
@@ -87,10 +97,21 @@
 <input id="select_all"   type="button" value="全選択" />
 <input id="unselect_all" type="button" value="全未選択" />
 
+<div id="pager"></div>
+
+<script type="text/javascript">
+window.chair = {};
+window.chair.grid = {};
+window.chair.grid.viewController = undefined;
+</script>
+
 <script type="text/coffeescript">
 
 DomainEvent.subscribe '*', (event, name)->
     console.log "EVENT: #{name}", event
+
+ViewEvent.subscribe '*', (event, name)->
+    console.log "VIEW EVENT: #{name}", event
 
 $ ->
     url = '/build/datasource.json'
@@ -118,28 +139,62 @@ $ ->
     ]
     """
 
-    viewController = new ViewController('block_id.list', columnConfigJSON, url, "#chair_table",
-                                         'row_selected'
-                                         'excel'
-                                        )
+    $('.pager_element').on 'click', ->
+        page = $(this).attr('data-page')
+        window.chair.grid.movePageTo(page)
+    
+    window.chair.grid.viewController =
+        new ViewController('block_id.list',
+                           columnConfigJSON,
+                           url,
+                           "#chair_table",
+                           'row_selected'
+                           'excel')
 
-    viewController.startup(1, 1)
+    window.chair.grid.viewController.startup(1, 10)
 
     $("#select_all").on "click", ->
-        viewController.selectAll()
-        viewController.movePageTo(2)
+        window.chair.grid.viewController.selectAll()
+        window.chair.grid.viewController.movePageTo(2)
 
     $("#unselect_all").on "click", ->
-        viewController.unselectAll()
+        window.chair.grid.viewController.unselectAll()
 
     $("#add_button").on "click", ->
-        viewController.add $("input[name=name]").val(),
+        window.chair.grid.viewController.add $("input[name=name]").val(),
                             {
                                 name: $("input[name=name]").val(),
                                 age:  $("input[name=age]").val(),
                                 flag: $("input[name=flag]").val()
                             }
+</script>
 
+<script type="text/javascript">
+
+DomainEvent.subscribe('GridChanged', function(event, eventName) {
+    if ($("#pager").children().length == 0) {
+        $("#pager").paginate({
+            count                  : event.total / event.rowsPerGrid,
+            start                  : 1,
+            display                : 7,
+            border                 : true,
+            border_color           : 'glay',
+            text_color             : '#888',
+            background_color       : '#EEE',   
+            text_hover_color       : 'black',
+            background_hover_color : '#CFCFCF',
+            images                 : false,
+            mouse                  : 'press',
+            first_text             : '最初',
+            last_text              : '最後',
+            onChange               : function(page) {
+                window.chair.grid.viewController.movePageTo(page);
+                $('._current', '#paginationdemo').removeClass('_current').hide();
+                $('#p' + page).addClass('_current').show();
+            }
+        });
+    }
+});
 </script>
 
 </body>

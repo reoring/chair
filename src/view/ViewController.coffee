@@ -4,7 +4,7 @@ class ViewController
 		@applicationGridService = new GridService
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
 
-	startup: (page, @rowsPerGrid)->
+	startup: (@page, @rowsPerGrid)->
 		moveMode = MoveModeFactory.create @moveModeName
 
 		@table = new Table @gridId, $(@tableSelector), moveMode, @applicationGridService, @columnConfigJSON
@@ -14,12 +14,9 @@ class ViewController
 
 		@applicationGridService.change(@gridId, page, rowsPerGrid)
 
-		# DomainEvent.subscribe '*', (event, eventName)->
-		#     console.log "I got #{eventName}: #{JSON.stringify(event)}"
-
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
 			@table.removeAllRows()
-			
+
 			if event.gridId is @gridId
 				for row in event.rows
 					@table.insert row.columns, row.id
@@ -27,6 +24,8 @@ class ViewController
 
 					for columnId in row.updatedColumns
 						@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
+
+				@table.setFilterRow(event.filter)
 
 			@cursor()
 
@@ -42,6 +41,9 @@ class ViewController
 		DomainEvent.subscribe 'RowUnselected', (event, eventName)=>
 			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @gridId
 
+		ViewEvent.subscribe 'ViewFilterChanged', (event, eventName)=>
+			@applicationGridService.change @gridId, @page, @rowsPerGrid, JSON.stringify(event)
+
 
 	add: (rowId, values)->
 		@applicationGridService.append @gridId, rowId, values
@@ -52,9 +54,26 @@ class ViewController
 	unselectAll: () ->
 		@applicationGridService.unselectAll(@gridId)
 
-	movePageTo: (page) ->
-		@applicationGridService.change @gridId, page, @rowsPerGrid
+	movePageTo: (@page) ->
+		@applicationGridService.change @gridId, @page, @rowsPerGrid
 
 	cursor: (rowId) ->
 		@table.cursorRow rowId unless rowId is undefined
 		@table.cursorTop()
+
+
+ViewEvent = 
+    channels: {
+        '*': []
+    }
+    publish: (eventName, event) ->
+        @channels[eventName] = [] unless eventName of @channels
+        eventData = event.serialize()
+        subscriber(eventData, eventName) for subscriber in @channels['*']
+        subscriber(eventData, eventName) for subscriber in @channels[eventName]
+        null
+
+    subscribe: (eventName, listener) ->
+        @channels[eventName] = [] unless eventName of @channels
+        @channels[eventName].push listener
+        null

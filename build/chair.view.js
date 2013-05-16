@@ -1,4 +1,4 @@
-var ViewController;
+var ViewController, ViewEvent;
 
 ViewController = (function() {
   function ViewController(gridId, columnConfigJSON, ajaxURL, tableSelector, rowSelectedClass, moveModeName) {
@@ -16,25 +16,37 @@ ViewController = (function() {
     var moveMode,
       _this = this;
 
+    this.page = page;
+    this.rowsPerGrid = rowsPerGrid;
     moveMode = MoveModeFactory.create(this.moveModeName);
-    this.table = new Table(this.gridId, $(this.tableSelector), moveMode, this.applicationGridService);
+    this.table = new Table(this.gridId, $(this.tableSelector), moveMode, this.applicationGridService, this.columnConfigJSON);
     this.table.header(JSON.parse(this.columnConfigJSON));
     moveMode.init(this.table, this.applicationGridService, this.rowSelectedClass);
     this.applicationGridService.change(this.gridId, page, rowsPerGrid);
     DomainEvent.subscribe('GridChanged', function(event, eventName) {
-      var row, _i, _len, _ref;
+      var columnId, row, _i, _j, _len, _len1, _ref, _ref1;
 
+      _this.table.removeAllRows();
       if (event.gridId === _this.gridId) {
         _ref = event.rows;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           row = _ref[_i];
           _this.table.insert(row.columns, row.id);
+          if (row.selected === true) {
+            _this.table.selectRow(row.id, _this.rowSelectedClass);
+          }
+          _ref1 = row.updatedColumns;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            columnId = _ref1[_j];
+            _this.table.addClassToColumn(_this.table.rowIdOfGlobal(row.id), columnId, 'column_modified');
+          }
         }
+        _this.table.setFilterRow(event.filter);
       }
       return _this.cursor();
     });
     DomainEvent.subscribe('ColumnUpdated', function(event, eventName) {
-      return _this.table.addClassToRow(_this.table.rowIdOfGlobal(event.rowId), _this.rowModifiedClass);
+      return _this.table.addClassToColumn(_this.table.rowIdOfGlobal(event.rowId), event.columnId, 'column_modified');
     });
     DomainEvent.subscribe('RowAppended', function(event, eventName) {
       if (event.gridId === _this.gridId) {
@@ -46,15 +58,18 @@ ViewController = (function() {
         return _this.table.selectRow(event.rowId, _this.rowSelectedClass);
       }
     });
-    return DomainEvent.subscribe('RowUnselected', function(event, eventName) {
+    DomainEvent.subscribe('RowUnselected', function(event, eventName) {
       if (event.gridId === _this.gridId) {
         return _this.table.unselectRow(event.rowId, _this.rowSelectedClass);
       }
     });
+    return ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
+      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, JSON.stringify(event));
+    });
   };
 
-  ViewController.prototype.add = function(id, row) {
-    return this.grid.append(new Row(id, row));
+  ViewController.prototype.add = function(rowId, values) {
+    return this.applicationGridService.append(this.gridId, rowId, values);
   };
 
   ViewController.prototype.selectAll = function() {
@@ -63,6 +78,11 @@ ViewController = (function() {
 
   ViewController.prototype.unselectAll = function() {
     return this.applicationGridService.unselectAll(this.gridId);
+  };
+
+  ViewController.prototype.movePageTo = function(page) {
+    this.page = page;
+    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid);
   };
 
   ViewController.prototype.cursor = function(rowId) {
@@ -75,3 +95,35 @@ ViewController = (function() {
   return ViewController;
 
 })();
+
+ViewEvent = {
+  channels: {
+    '*': []
+  },
+  publish: function(eventName, event) {
+    var eventData, subscriber, _i, _j, _len, _len1, _ref, _ref1;
+
+    if (!(eventName in this.channels)) {
+      this.channels[eventName] = [];
+    }
+    eventData = event.serialize();
+    _ref = this.channels['*'];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      subscriber = _ref[_i];
+      subscriber(eventData, eventName);
+    }
+    _ref1 = this.channels[eventName];
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      subscriber = _ref1[_j];
+      subscriber(eventData, eventName);
+    }
+    return null;
+  },
+  subscribe: function(eventName, listener) {
+    if (!(eventName in this.channels)) {
+      this.channels[eventName] = [];
+    }
+    this.channels[eventName].push(listener);
+    return null;
+  }
+};

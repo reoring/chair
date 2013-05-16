@@ -166,7 +166,7 @@ Grid = (function() {
     }).call(this);
   };
 
-  Grid.prototype.change = function(rows) {
+  Grid.prototype.change = function(rows, page, total, rowsPerGrid, filter) {
     var row, _i, _len;
 
     this._rows = {};
@@ -174,7 +174,7 @@ Grid = (function() {
       row = rows[_i];
       this._addRow(row);
     }
-    return DomainEvent.publish("GridChanged", new GridChanged(this.id, rows));
+    return DomainEvent.publish("GridChanged", new GridChanged(this.id, rows, page, total, rowsPerGrid, filter));
   };
 
   Grid.prototype.removeRow = function(rowId) {
@@ -276,10 +276,14 @@ AllRowsUnselected = (function() {
 })();
 
 GridChanged = (function() {
-  function GridChanged(gridId, rows) {
+  function GridChanged(gridId, rows, page, total, rowsPerGrid, filter) {
     var row, _i, _len;
 
     this.gridId = gridId;
+    this.page = page;
+    this.total = total;
+    this.rowsPerGrid = rowsPerGrid;
+    this.filter = filter;
     if (!this.gridId) {
       throw new Error('Grid ID is required');
     }
@@ -298,10 +302,26 @@ GridChanged = (function() {
     }
   }
 
+  GridChanged.prototype.page = function() {
+    return this.page;
+  };
+
+  GridChanged.prototype.total = function() {
+    return this.total;
+  };
+
+  GridChanged.prototype.filter = function() {
+    return this.filter;
+  };
+
   GridChanged.prototype.serialize = function() {
     return {
       gridId: this.gridId,
-      rows: this.rows
+      rows: this.rows,
+      page: this.page,
+      total: this.total,
+      rowsPerGrid: this.rowsPerGrid,
+      filter: this.filter
     };
   };
 
@@ -312,7 +332,7 @@ GridChanged = (function() {
 GridChangeService = (function() {
   function GridChangeService() {}
 
-  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid) {
+  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -334,13 +354,17 @@ GridChangeService = (function() {
       condition = {
         gridId: grid.id,
         page: page,
-        rowsPerGrid: rowsPerGrid
+        rowsPerGrid: rowsPerGrid,
+        filter: filter
       };
-      return DomainRegistry.rowRepository().rowsSpecifiedBy(condition, function(error, rows) {
+      return DomainRegistry.rowRepository().rowsSpecifiedBy(condition, function(error, response) {
         if (error) {
           throw new Error(error);
         }
-        return grid.change(rows);
+        if (condition.filter !== void 0) {
+          filter = JSON.parse(condition.filter);
+        }
+        return grid.change(response.rows, condition.page, response.total, condition.rowsPerGrid, filter);
       });
     });
     return null;
@@ -409,13 +433,14 @@ Row = (function() {
   }
 
   Row.prototype.updateColumn = function(columnId, columnValue) {
-    if (this.columns[columnId]) {
+    if (columnId in this.columns) {
       if (this.columns[columnId] === columnValue) {
         return null;
+      } else {
+        this.columns[columnId] = columnValue;
+        this.updatedColumns.push(columnId);
+        DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));
       }
-      this.columns[columnId] = columnValue;
-      this.updatedColumns.push(columnId);
-      DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));
     }
     return null;
   };
@@ -461,7 +486,7 @@ ColumnUpdated = (function() {
     if (!this.columnId) {
       throw new Error('Column ID is required');
     }
-    if (!this.columnValue) {
+    if (this.columnValue == null) {
       throw new Error('Column Value is required');
     }
   }
@@ -597,16 +622,18 @@ JQueryAjaxRowRepository = (function(_super) {
   JQueryAjaxRowRepository.prototype.rowsSpecifiedBy = function(condition, callback) {
     var _this = this;
 
+    console.log(condition);
     return $.ajax({
       url: this.ajaxURL,
       data: {
         id: condition.gridId,
         page: condition.page,
-        rowsPerGrid: condition.rowsPerGrid
+        rowsPerGrid: condition.rowsPerGrid,
+        filter: condition.filter
       },
       dataType: 'json',
       success: function(data) {
-        var gridId, row, rowData, rows, rowsForResponse, total, _i, _j, _len, _len1, _ref, _ref1;
+        var gridId, response, row, rowData, rows, rowsForResponse, _i, _j, _len, _len1, _ref, _ref1;
 
         if (typeof data !== 'object') {
           return callback("Response is not object", null);
@@ -629,7 +656,6 @@ JQueryAjaxRowRepository = (function(_super) {
         }
         gridId = data.id;
         rows = data.rows;
-        total = data.total;
         rowsForResponse = [];
         _ref1 = data.rows;
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
@@ -638,7 +664,12 @@ JQueryAjaxRowRepository = (function(_super) {
           row = _this.gridContainer.get(gridId, rowData.id);
           rowsForResponse.push(row);
         }
-        callback(null, rowsForResponse);
+        response = {
+          gridId: gridId,
+          rows: rowsForResponse,
+          total: data.total
+        };
+        callback(null, response);
         return null;
       },
       error: function(xhr, status, error) {

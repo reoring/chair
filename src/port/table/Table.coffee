@@ -120,12 +120,48 @@ class Table
 
         @moveMode.afterInsert? id, tr
 
+    setFilterRow: (filter) ->
+        filter = {} if filter is undefined
+
+        tr = $('<tr></tr>').addClass 'filter'
+
+        @moveMode.beforeInsert? undefined, tr
+
+        for columnConfig in @columnConfig
+            tr.append @createFilterColumn columnConfig, filter[columnConfig.id]
+
+        @table.find('tbody').append tr
+
     createRowColumn: (column, value) ->
         td = $('<td></td>')
         td.addClass(column).attr('data-column', column.id)
         td.attr('data-column-editable', column.editable)
         td.addClass('disabled') if column.editable is false
         td.append $('<span></span>').append value
+
+    createFilterColumn: (columnConfig, value) ->
+        td = $('<td></td>')
+        input = $('<input></input>').attr('type', 'text')
+                                    .attr('data-filter-column', columnConfig.id)
+                                    .val(value)
+                                    .addClass 'filter_input'
+
+        input.on 'keyup', =>
+            window.clearTimeout @timeoutID
+
+            @timeoutID = setTimeout(
+                ->
+                    filterConditions = []
+
+                    $('.filter_input').each (i, input) ->
+                        columnId = $(input).attr('data-filter-column')
+                        value = $(input).val()
+                        filterConditions.push {columnId: columnId, value: value}
+
+                    ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged filterConditions)
+                , 450)
+
+        td.append input
 
     selectRow: (rowId, cssClass) ->
         @moveMode.beforeRowSelect? rowId
@@ -229,7 +265,7 @@ class Table
     _editCell: (column) ->
         return false if column is false
 
-        input = $('<input type="text"></input>').val(column.text())
+        input = $('<input type="text"></input>').addClass('inline_edit').val(column.text())
 
         TableUIHelper.fitInputToCell input, column
         column.find("span").replaceWith(input)
@@ -255,3 +291,15 @@ class Table
 
     guid: ->
       return @s4() + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + '-' + @s4() + @s4() + @s4()
+
+
+class ViewFilterChanged
+    constructor: (@filterConditions) ->
+
+    serialize: ->
+        serializedFilterConditions = {}
+
+        for condition in @filterConditions
+            serializedFilterConditions[condition.columnId] = condition.value
+
+        return serializedFilterConditions

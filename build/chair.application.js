@@ -80,6 +80,19 @@ GridService = (function() {
     return null;
   };
 
+  GridService.prototype.append = function(gridId, rowId, columnValues) {
+    DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      if (error) {
+        throw new Error(error);
+      }
+      if (grid === null) {
+        return null;
+      }
+      return grid.append(new Row(rowId, columnValues));
+    });
+    return null;
+  };
+
   GridService.prototype.updateColumn = function(gridId, rowId, columnId, columnValue) {
     DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
       if (error) {
@@ -106,7 +119,7 @@ GridService = (function() {
     return null;
   };
 
-  GridService.prototype.change = function(gridId, page, rowsPerGrid) {
+  GridService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -116,7 +129,7 @@ GridService = (function() {
     if (!rowsPerGrid) {
       throw new Error('Rows Per Grid is required');
     }
-    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid);
+    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter);
     return null;
   };
 

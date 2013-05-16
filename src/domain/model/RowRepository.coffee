@@ -27,21 +27,28 @@ class JQueryAjaxRowRepository extends RowRepository
             callback(null, null)
 
     rowsSpecifiedBy: (condition, callback)->
+        console.log condition
         $.ajax {
             url: @ajaxURL
-            data: {id: condition.gridId, page: condition.page, rowsPerGrid: condition.rowsPerGrid}
+            data: {
+                    id:          condition.gridId
+                    page:        condition.page
+                    rowsPerGrid: condition.rowsPerGrid
+                    filter:      condition.filter
+                  }
+
             dataType: 'json'
             success: (data)=>
                 return callback("Response is not object", null) if typeof data isnt 'object'
                 return callback("Invalid scheme: gridId is missing", null) if 'id' not of data
                 return callback("Invalid scheme: rows is missing", null) if 'rows' not of data
                 return callback("Invalid scheme: total is missing", null) if 'total' not of data
+
                 for row in data.rows
                     return callback("Row id is missing: #{JSON.stringify(row)}", null) unless row.id
 
                 gridId = data.id
                 rows = data.rows
-                total = data.total
 
                 rowsForResponse = []
 
@@ -50,7 +57,13 @@ class JQueryAjaxRowRepository extends RowRepository
                     row = @gridContainer.get(gridId, rowData.id)
                     rowsForResponse.push(row)
 
-                callback(null, rowsForResponse)
+                response = {
+                    gridId: gridId
+                    rows:   rowsForResponse
+                    total:  data.total
+                }
+
+                callback(null, response)
                 null
 
             error: (xhr, status, error)=>

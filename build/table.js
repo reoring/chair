@@ -1,7 +1,7 @@
-var ExcelMoveMode, MoveModeFactory, SequenceMoveMode, Table, TableUIHelper;
+var ExcelMoveMode, MoveModeFactory, SequenceMoveMode, Table, TableUIHelper, ViewFilterChanged;
 
 Table = (function() {
-  function Table(tableId, table, moveMode, gridService) {
+  function Table(tableId, table, moveMode, gridService, columnConfigJSON) {
     var _this = this;
 
     this.tableId = tableId;
@@ -11,6 +11,7 @@ Table = (function() {
     this.rows = {};
     this.rowsById = {};
     this.numberOfRows = 0;
+    this.columnConfig = JSON.parse(columnConfigJSON);
     this.currentCursor = void 0;
     $(document).on('keydown', function(event) {
       var currentRow, nextRow, rowId;
@@ -43,6 +44,13 @@ Table = (function() {
       }
     });
   }
+
+  Table.prototype.reset = function() {
+    this.rows = {};
+    this.rowsById = {};
+    this.numberOfRows = 0;
+    return this.currentCursor = void 0;
+  };
 
   Table.prototype.selector = function() {
     return this.table.selector;
@@ -120,7 +128,7 @@ Table = (function() {
   };
 
   Table.prototype.insert = function(data, id) {
-    var column, columnIndex, rowId, tr, value, _base, _base1;
+    var columnConfig, rowId, tr, _base, _base1, _i, _len, _ref;
 
     if (id === void 0) {
       id = this.guid();
@@ -135,14 +143,31 @@ Table = (function() {
       data: data
     };
     this.rowsById[id] = data;
-    columnIndex = 0;
-    for (column in data) {
-      value = data[column];
-      tr.append(this.createRowColumn(this.columns[columnIndex], value));
-      columnIndex++;
+    _ref = this.columnConfig;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      columnConfig = _ref[_i];
+      tr.append(this.createRowColumn(columnConfig, data[columnConfig.id]));
     }
     this.table.find('tbody').append(tr);
     return typeof (_base1 = this.moveMode).afterInsert === "function" ? _base1.afterInsert(id, tr) : void 0;
+  };
+
+  Table.prototype.setFilterRow = function(filter) {
+    var columnConfig, tr, _base, _i, _len, _ref;
+
+    if (filter === void 0) {
+      filter = {};
+    }
+    tr = $('<tr></tr>').addClass('filter');
+    if (typeof (_base = this.moveMode).beforeInsert === "function") {
+      _base.beforeInsert(void 0, tr);
+    }
+    _ref = this.columnConfig;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      columnConfig = _ref[_i];
+      tr.append(this.createFilterColumn(columnConfig, filter[columnConfig.id]));
+    }
+    return this.table.find('tbody').append(tr);
   };
 
   Table.prototype.createRowColumn = function(column, value) {
@@ -155,6 +180,34 @@ Table = (function() {
       td.addClass('disabled');
     }
     return td.append($('<span></span>').append(value));
+  };
+
+  Table.prototype.createFilterColumn = function(columnConfig, value) {
+    var input, td,
+      _this = this;
+
+    td = $('<td></td>');
+    input = $('<input></input>').attr('type', 'text').attr('data-filter-column', columnConfig.id).val(value).addClass('filter_input');
+    input.on('keyup', function() {
+      window.clearTimeout(_this.timeoutID);
+      return _this.timeoutID = setTimeout(function() {
+        var filterConditions;
+
+        filterConditions = [];
+        $('.filter_input').each(function(i, input) {
+          var columnId;
+
+          columnId = $(input).attr('data-filter-column');
+          value = $(input).val();
+          return filterConditions.push({
+            columnId: columnId,
+            value: value
+          });
+        });
+        return ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged(filterConditions));
+      }, 450);
+    });
+    return td.append(input);
   };
 
   Table.prototype.selectRow = function(rowId, cssClass) {
@@ -186,8 +239,21 @@ Table = (function() {
     }
   };
 
+  Table.prototype.addClassToColumn = function(rowId, columnName, className) {
+    var column, row;
+
+    row = this.findRow(rowId);
+    column = row.find('td[data-column="' + columnName + '"]');
+    return column.addClass(className);
+  };
+
   Table.prototype.removeClassFromRow = function(id, className) {
     return this.findRow(id).removeClass(className);
+  };
+
+  Table.prototype.removeAllRows = function() {
+    this.reset();
+    return this.table.find('tbody').html('');
   };
 
   Table.prototype.removeAllClassesFromRow = function(id) {
@@ -317,7 +383,7 @@ Table = (function() {
     if (column === false) {
       return false;
     }
-    input = $('<input type="text"></input>').val(column.text());
+    input = $('<input type="text"></input>').addClass('inline_edit').val(column.text());
     TableUIHelper.fitInputToCell(input, column);
     column.find("span").replaceWith(input);
     input.select();
@@ -352,6 +418,27 @@ Table = (function() {
   };
 
   return Table;
+
+})();
+
+ViewFilterChanged = (function() {
+  function ViewFilterChanged(filterConditions) {
+    this.filterConditions = filterConditions;
+  }
+
+  ViewFilterChanged.prototype.serialize = function() {
+    var condition, serializedFilterConditions, _i, _len, _ref;
+
+    serializedFilterConditions = {};
+    _ref = this.filterConditions;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      condition = _ref[_i];
+      serializedFilterConditions[condition.columnId] = condition.value;
+    }
+    return serializedFilterConditions;
+  };
+
+  return ViewFilterChanged;
 
 })();
 
@@ -416,13 +503,17 @@ ExcelMoveMode = (function() {
         return checkbox.prop('checked', true);
       }
     });
-    return tr.append($('<td></td>').append(input));
+    return tr.append($('<th></th>').append(input));
   };
 
   ExcelMoveMode.prototype.beforeInsert = function(id, tr) {
     var input,
       _this = this;
 
+    if (id === void 0) {
+      tr.append($('<td></td>'));
+      return;
+    }
     input = $('<input></input>').attr('type', 'checkbox');
     input.attr('data-row-id', id);
     input.on('click', function() {
@@ -480,6 +571,10 @@ ExcelMoveMode = (function() {
       }
     });
     return input.on('blur', function() {
+      var value;
+
+      value = input.val();
+      _this.applicationGridService.updateColumn(tableId, rowId, columnId, value);
       return input.replaceWith($('<span></span>').text(input.val()));
     });
   };

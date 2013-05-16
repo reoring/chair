@@ -16,9 +16,13 @@ class ExcelMoveMode
 				@applicationGridService.selectAll(@table.tableId)
 				checkbox.prop 'checked', true
 
-		tr.append $('<td></td>').append(input)
+		tr.append $('<th></th>').append(input)
 
 	beforeInsert: (id, tr) ->
+		if id is undefined
+			tr.append $('<td></td>')
+			return
+
 		input = $('<input></input>').attr 'type', 'checkbox'
 		input.attr 'data-row-id', id
 

@@ -1,4 +1,4 @@
-var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, InMemoryRowContainer, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController, ViewEvent, ViewFilterChanged,
+var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, InMemoryRowContainer, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController, ViewEvent, ViewFilterChanged, ViewSortChanged,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -966,7 +966,7 @@ Table = (function() {
   };
 
   Table.prototype.header = function(columns) {
-    var column, newTr, _base, _base1, _i, _len, _ref;
+    var column, newTr, span, th, _base, _base1, _i, _len, _ref;
 
     this.columns = columns;
     newTr = $('<tr></tr>');
@@ -976,7 +976,32 @@ Table = (function() {
     _ref = this.columns;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       column = _ref[_i];
-      newTr.append($('<th></th>').attr('data-column-id', column.id).append($('<span></span>').append(column.title)));
+      th = $('<th></th>').attr('data-column-id', column.id);
+      th.on('click', function() {
+        var columnId, i;
+
+        columnId = $(this).attr('data-column-id');
+        i = $(this).find('i');
+        if (i.hasClass('icon-caret-down')) {
+          i.removeClass();
+          $(this).parents('tr').find('i').each(function(index, element) {
+            return $(element).removeClass();
+          });
+          i.addClass('icon-caret-up');
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'asc'));
+        } else {
+          i.removeClass();
+          $(this).parents('tr').find('i').each(function(index, element) {
+            return $(element).removeClass();
+          });
+          i.addClass('icon-caret-down');
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'desc'));
+        }
+      });
+      span = $('<span></span>');
+      span.append(column.title);
+      span.append($('<i></i>'));
+      newTr.append(th.append(span));
       this.table.find('thead').append(newTr);
     }
     return typeof (_base1 = this.moveMode).afterHeader === "function" ? _base1.afterHeader(newTr) : void 0;
@@ -1362,6 +1387,23 @@ ViewFilterChanged = (function() {
   };
 
   return ViewFilterChanged;
+
+})();
+
+ViewSortChanged = (function() {
+  function ViewSortChanged(columnId, direction) {
+    this.columnId = columnId;
+    this.direction = direction;
+  }
+
+  ViewSortChanged.prototype.serialize = function() {
+    return {
+      columnId: this.columnId,
+      direction: this.direction
+    };
+  };
+
+  return ViewSortChanged;
 
 })();
 

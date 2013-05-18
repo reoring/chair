@@ -47,9 +47,30 @@ class Table
         @moveMode.beforeHeader? newTr
 
         for column in @columns
-            newTr.append $('<th></th>').attr('data-column-id', column.id)
-                                       .append $('<span></span>')
-                                       .append column.title
+            th = $('<th></th>').attr('data-column-id', column.id)
+
+            th.on 'click', ->
+                columnId = $(this).attr('data-column-id')
+                i = $(this).find('i')
+
+                if i.hasClass 'icon-caret-down'
+                    i.removeClass()
+                    $(this).parents('tr').find('i').each (index, element) ->
+                        $(element).removeClass()
+                    i.addClass 'icon-caret-up'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'asc'
+                else
+                    i.removeClass()
+                    $(this).parents('tr').find('i').each (index, element) ->
+                        $(element).removeClass()
+                    i.addClass 'icon-caret-down'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'desc'
+
+            span = $('<span></span>')
+            span.append column.title
+            span.append $('<i></i>')
+
+            newTr.append th.append span
 
             @table.find('thead').append newTr
 
@@ -312,3 +333,9 @@ class ViewFilterChanged
             serializedFilterConditions[condition.columnId] = condition.value
 
         return serializedFilterConditions
+
+class ViewSortChanged
+    constructor: (@columnId, @direction) ->
+
+    serialize: ->
+        return {columnId: @columnId, direction: @direction}

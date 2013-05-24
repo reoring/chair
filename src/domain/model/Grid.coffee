@@ -47,6 +47,9 @@ class Grid
             @_getRow(rowId).remove()
             delete @_rows[rowId]
 
+    allRowSelected: ()->
+        return @selectionStatus is ALL_ROWS_SELECTED
+
     _hasRow: (rowId)->
         if @_rows[rowId]
             return true

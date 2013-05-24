@@ -27,7 +27,6 @@ class JQueryAjaxRowRepository extends RowRepository
             callback(null, null)
 
     rowsSpecifiedBy: (condition, callback)->
-        console.log condition
         $.ajax {
             url: @ajaxURL
             data: {
@@ -86,7 +85,18 @@ class InMemoryRowContainer
             return 
 
         columns = @_removeIdFromColumns(rowData, 'id')
-        @add(new Row(rowId, columns, gridId))
+
+        DomainRegistry.gridRepository().gridOfId gridId, (error, grid)=>
+            throw new Error('Failed to find Grid') if error
+            throw new Error('Grid not found') if grid not instanceof Grid
+
+            row = new Row(rowId, columns, gridId)
+            if grid.allRowSelected()
+                row.selected = true
+            else
+                row.selected = false
+            @add(row)
+
         null
     
     add: (row)->

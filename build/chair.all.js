@@ -184,6 +184,10 @@ Grid = (function() {
     }
   };
 
+  Grid.prototype.allRowSelected = function() {
+    return this.selectionStatus === ALL_ROWS_SELECTED;
+  };
+
   Grid.prototype._hasRow = function(rowId) {
     if (this._rows[rowId]) {
       return true;
@@ -622,7 +626,6 @@ JQueryAjaxRowRepository = (function(_super) {
   JQueryAjaxRowRepository.prototype.rowsSpecifiedBy = function(condition, callback) {
     var _this = this;
 
-    console.log(condition);
     return $.ajax({
       url: this.ajaxURL,
       data: {
@@ -688,7 +691,8 @@ InMemoryRowContainer = (function() {
   }
 
   InMemoryRowContainer.prototype.addByData = function(gridId, rowData) {
-    var columns, rowId;
+    var columns, rowId,
+      _this = this;
 
     if (!gridId) {
       throw new Error('Grid ID is required');
@@ -707,7 +711,23 @@ InMemoryRowContainer = (function() {
       return;
     }
     columns = this._removeIdFromColumns(rowData, 'id');
-    this.add(new Row(rowId, columns, gridId));
+    DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
+      var row;
+
+      if (error) {
+        throw new Error('Failed to find Grid');
+      }
+      if (!(grid instanceof Grid)) {
+        throw new Error('Grid not found');
+      }
+      row = new Row(rowId, columns, gridId);
+      if (grid.allRowSelected()) {
+        row.selected = true;
+      } else {
+        row.selected = false;
+      }
+      return _this.add(row);
+    });
     return null;
   };
 

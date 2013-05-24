@@ -31,7 +31,7 @@
 # Event subscription
 #
 DomainEvent.subscribe '*', (event, eventName)->
-    console.log "I got #{eventName}: ", JSON.stringify(event)
+    console.log "I got #{eventName}: ", event
 
 #
 # Sample starting-up code for client
@@ -53,7 +53,7 @@ columnConfigJSON = """
     }
 ]
 """
-ajaxURL = '/build/datasource.json'
+ajaxURL = '/build/datasource.php'
 applicationGridService.startup(gridId, columnConfigJSON, ajaxURL)
 
 #
@@ -77,11 +77,12 @@ setTimeout(
             applicationGridService.updateColumn(gridId, '1', 'name', 'suinyeze')
 
             applicationGridService.unselectAll(gridId)
+            applicationGridService.selectAll(gridId)
 
             applicationGridService.removeRow(gridId, '1')
             applicationGridService.removeRow(gridId, '2')
 
-            applicationGridService.change(gridId, 1, 20)
+            applicationGridService.change(gridId, 2, 20)
     , 500
 )
 

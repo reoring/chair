@@ -28,7 +28,7 @@ class ViewController
 						@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
 
 
-			@cursor()
+			@cursor() if event.rows.length > 0
 
 		DomainEvent.subscribe 'ColumnUpdated', (event, eventName)=>
 			@table.addClassToColumn(@table.rowIdOfGlobal(event.rowId), event.columnId, 'column_modified')

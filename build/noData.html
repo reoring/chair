@@ -1,0 +1,213 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>no-data</title>
+
+    <script type="text/javascript" src="jquery-2.0.0.min.js"></script>
+    <script type="text/javascript" src="coffee-script.js"></script>
+    <script type="text/javascript" src="chair.all.js"></script>
+
+    <script type="text/javascript" src="jquery.paginate.js"></script>
+
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css" rel="stylesheet">
+
+    <link href="bootstrap-combined.min.css" rel="stylesheet">
+    <link href="pagination.style.css" rel="stylesheet">
+
+    <style type="text/css">
+
+    .mark {
+        width: 0px;
+        height: 0px;
+        border-style: solid;
+        border-width: 0 1px 1px 0;
+        border-color: transparent #ff0088 transparent transparent;
+    }
+
+    tr.row_selected {
+        background: #ffc;
+    }
+
+    tr.row_modified {
+        background: #eef;
+    }
+
+    td.column_modified {
+        border-left: 2px solid #AEF26D;
+    }
+
+    .table tr {
+        cursor: pointer;
+    }
+
+    .table span {
+        cursor: text;
+    }
+
+    .table td {
+        /* border-right: 1px solid #ddd; */
+        -webkit-user-select: none;
+    }
+
+    .table td.disabled {
+        background: #eee;
+    }
+
+    .table input.inline_edit {
+        border: 1px solid #ddd;
+        -webkit-border-radius: 0;
+        border-radius: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .table tr.current {
+        border-left: 3px solid red;
+    }
+
+    .table input.filter_input {
+        width: 100%;
+        height: 100%; 
+        padding: 2px;
+        font-size: 1.2em;
+    }
+
+    i.icon-caret-down {
+        padding-top: 2px;
+        padding-left: 5px;
+    }
+    i.icon-caret-up {
+        padding-top: 2px;
+        padding-left: 5px;
+    }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <table id="chair_table" class="table">
+        <colgroup><col style="width: 50px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+        <colgroup><col style="width: 200px;"></colgroup>
+
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<input type="text" name="name" />
+<input type="text" name="age" />
+<input type="text" name="flag" />
+<input id="add_button" type="button" value="追加" />
+
+<br/>
+<input id="select_all"   type="button" value="全選択" />
+<input id="unselect_all" type="button" value="全未選択" />
+
+<div id="pager"></div>
+
+<script type="text/javascript">
+window.chair = {};
+window.chair.grid = {};
+window.chair.grid.viewController = undefined;
+</script>
+
+<script type="text/coffeescript">
+
+DomainEvent.subscribe '*', (event, name)->
+    console.log "EVENT: #{name}", event
+
+ViewEvent.subscribe '*', (event, name)->
+    console.log "VIEW EVENT: #{name}", event
+
+$ ->
+    url = '/build/datasource_none.json'
+
+    columnConfigJSON = """
+    [
+        {
+            "id": "name",
+            "title": "Full Name",
+            "editable": true,
+            "formats": ["bold"]
+        },
+        {
+            "id": "age",
+            "title": "Age",
+            "editable": true,
+            "formats": ["pull-right"]
+        },
+        {
+            "id": "flag",
+            "title": "Flag",
+            "editable": true,
+            "formats": ["pull-right"]
+        }
+    ]
+    """
+
+    $('.pager_element').on 'click', ->
+        page = $(this).attr('data-page')
+        window.chair.grid.movePageTo(page)
+    
+    window.chair.grid.viewController =
+        new ViewController('block_id.list',
+                           columnConfigJSON,
+                           url,
+                           "#chair_table",
+                           'row_selected'
+                           'excel')
+
+    window.chair.grid.viewController.startup(1, 10)
+
+    $("#select_all").on "click", ->
+        window.chair.grid.viewController.selectAll()
+        window.chair.grid.viewController.movePageTo(2)
+
+    $("#unselect_all").on "click", ->
+        window.chair.grid.viewController.unselectAll()
+
+    $("#add_button").on "click", ->
+        window.chair.grid.viewController.add $("input[name=name]").val(),
+                            {
+                                name: $("input[name=name]").val(),
+                                age:  $("input[name=age]").val(),
+                                flag: $("input[name=flag]").val()
+                            }
+</script>
+
+<script type="text/javascript">
+
+DomainEvent.subscribe('GridChanged', function(event, eventName) {
+    if ($("#pager").children().length == 0) {
+        $("#pager").paginate({
+            count                  : 1,
+            start                  : 1,
+            display                : 1,
+            border                 : true,
+            border_color           : 'glay',
+            text_color             : '#888',
+            background_color       : '#EEE',   
+            text_hover_color       : 'black',
+            background_hover_color : '#CFCFCF',
+            images                 : false,
+            mouse                  : 'press',
+            first_text             : '最初',
+            last_text              : '最後',
+            onChange               : function(page) {
+                window.chair.grid.viewController.movePageTo(page);
+                $('._current', '#paginationdemo').removeClass('_current').hide();
+                $('#p' + page).addClass('_current').show();
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

@@ -45,7 +45,9 @@ ViewController = (function() {
           }
         }
       }
-      return _this.cursor();
+      if (event.rows.length > 0) {
+        return _this.cursor();
+      }
     });
     DomainEvent.subscribe('ColumnUpdated', function(event, eventName) {
       return _this.table.addClassToColumn(_this.table.rowIdOfGlobal(event.rowId), event.columnId, 'column_modified');

@@ -623,6 +623,10 @@ JQueryAjaxRowRepository = (function(_super) {
     }
   };
 
+  JQueryAjaxRowRepository.prototype.setAjaxAddtionalParams = function(addtionalParams) {
+    this.addtionalParams = addtionalParams;
+  };
+
   JQueryAjaxRowRepository.prototype.rowsSpecifiedBy = function(condition, callback) {
     var _this = this;
 
@@ -632,7 +636,8 @@ JQueryAjaxRowRepository = (function(_super) {
         id: condition.gridId,
         page: condition.page,
         rowsPerGrid: condition.rowsPerGrid,
-        filter: condition.filter
+        filter: condition.filter,
+        addtionalParams: this.addtionalParams
       },
       dataType: 'json',
       success: function(data) {

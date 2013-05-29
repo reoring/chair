@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>table</title>
+
+    <script type="text/javascript" src="jquery-2.0.0.min.js"></script>
+    <script type="text/javascript" src="coffee-script.js"></script>
+    <script type="text/javascript" src="chair.all.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+    <select id="display_type_select" name="displayType">
+        <option value="tester" selected="selected">tester</option>
+        <option value="suppoter">supporter</option>
+    </select>
+    <table id="chair_table" class="table">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+window.chair = {};
+window.chair.grid = {};
+window.chair.grid.viewController = undefined;
+</script>
+<script type="text/coffeescript">
+#
+# Event subscription
+#
+DomainEvent.subscribe '*', (event, eventName)->
+    console.log "I got #{eventName}: ", event
+
+filter=null
+DomainEvent.subscribe 'GridChanged', (event, eventName)=>
+    filter=event.filter
+#
+# Sample starting-up code for client
+#
+$ ->
+  gridId = 'block_id.list'
+  columnConfigJSON = """
+  [
+    {
+        "id": "name",
+        "title": "Full Name",
+        "formats": ["bold"]
+    },
+    {
+        "id": "age",
+        "title": "Age",
+        "formats": ["pull-right"]
+    }
+  ]
+  """
+  ajaxURL = '/build/datasource2.php'
+
+  window.chair.grid.viewController =
+        new ViewController(gridId,
+                           columnConfigJSON,
+                           ajaxURL,
+                           "#chair_table",
+                           'row_selected'
+                           'excel')
+
+  DomainRegistry.rowRepository().setAjaxAddtionalParams(JSON.stringify({type:"tester"}))
+  window.chair.grid.viewController.startup(1, 20)
+
+  $('select#display_type_select').change( ->
+     value = $(this).val()
+     additionParams = {type: value}
+     DomainRegistry.rowRepository().setAjaxAddtionalParams(JSON.stringify(additionParams))
+     window.chair.grid.viewController.applicationGridService.change(gridId, 1, 20, filter)
+  )
+</script>
+
+
+</body>
+</html>

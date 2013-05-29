@@ -26,6 +26,8 @@ class JQueryAjaxRowRepository extends RowRepository
             # here needs to ajax to fetch that Row?
             callback(null, null)
 
+    setAjaxAddtionalParams: (@addtionalParams)->
+
     rowsSpecifiedBy: (condition, callback)->
         $.ajax {
             url: @ajaxURL
@@ -34,6 +36,7 @@ class JQueryAjaxRowRepository extends RowRepository
                     page:        condition.page
                     rowsPerGrid: condition.rowsPerGrid
                     filter:      condition.filter
+                    addtionalParams: @addtionalParams
                   }
 
             dataType: 'json'

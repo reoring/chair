@@ -4,6 +4,7 @@ class Row
         for own columnId, columnValue of columns
             @columns[columnId] = "#{columnValue}"
 
+        @modified = false
         @deleted = false
         @selected = false
         @updatedColumns = []
@@ -20,10 +21,19 @@ class Row
                 # Idempotency
                 return null
             else
+                @modified = true
                 @columns[columnId] = columnValue
                 @updatedColumns.push(columnId)
                 DomainEvent.publish('ColumnUpdated', new ColumnUpdated(@gridId, @id, columnId, columnValue))
         null
+
+    isModified: ()->
+        return @modified
+
+    save: ()->
+        if @modified is true
+            @modified = false
+            DomainEvent.publish('RowSaved', new RowSaved(@gridId, @id))
 
     remove: ()->
         @deleted = true
@@ -57,6 +67,13 @@ class ColumnUpdated
         }
 
 class RowRemoved
+    constructor: (@gridId, @rowId)->
+        throw new Error('Grid ID is required') unless @gridId
+        throw new Error('Row ID is required') unless @rowId
+    serialize: ()->
+        return {gridId: @gridId, rowId: @rowId}
+
+class RowSaved
     constructor: (@gridId, @rowId)->
         throw new Error('Grid ID is required') unless @gridId
         throw new Error('Row ID is required') unless @rowId

@@ -1,9 +1,11 @@
 class GridService
 
-    startup: (gridId, columnsConfig, ajaxURL)->
+    startup: (gridId, columnsConfig, ajaxQueryURL, ajaxCommandURL)->
         throw new Error('Grid ID is required') unless gridId
         throw new Error('Columns Config are required') unless columnsConfig
-        throw new Error('Ajax URL is required') unless ajaxURL
+        throw new Error('Ajax Query URL is required') unless ajaxQueryURL
+
+        ajaxCommandURL = ajaxQueryURL unless ajaxCommandURL
 
         columnsConfig = JSON.parse(columnsConfig)
 
@@ -17,7 +19,7 @@ class GridService
 
         DomainRegistry.gridRepository().add(grid)
 
-        DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(ajaxURL))
+        DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(ajaxQueryURL, ajaxCommandURL))
 
         null
 
@@ -27,6 +29,18 @@ class GridService
             return null if row is null
             row.select()
         null
+
+    save: (gridId, rowId)->
+        rowRepository = DomainRegistry.rowRepository()
+        rowRepository.save gridId, rowId, (error, row)=>
+            throw new Error(error) if error
+            return null if row is null
+        null
+
+    saveAll: (gridId)->
+        rowRepository = DomainRegistry.rowRepository()
+        rowRepository.saveAll gridId
+
 
     unselect: (gridId, rowId)->
         DomainRegistry.rowRepository().rowOfId gridId, rowId, (error, row)->

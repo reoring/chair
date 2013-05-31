@@ -3,7 +3,7 @@ var GridService;
 GridService = (function() {
   function GridService() {}
 
-  GridService.prototype.startup = function(gridId, columnsConfig, ajaxURL) {
+  GridService.prototype.startup = function(gridId, columnsConfig, ajaxQueryURL, ajaxCommandURL) {
     var columns, config, formats, grid, _i, _len;
 
     if (!gridId) {
@@ -12,8 +12,11 @@ GridService = (function() {
     if (!columnsConfig) {
       throw new Error('Columns Config are required');
     }
-    if (!ajaxURL) {
-      throw new Error('Ajax URL is required');
+    if (!ajaxQueryURL) {
+      throw new Error('Ajax Query URL is required');
+    }
+    if (!ajaxCommandURL) {
+      ajaxCommandURL = ajaxQueryURL;
     }
     columnsConfig = JSON.parse(columnsConfig);
     columns = [];
@@ -24,7 +27,7 @@ GridService = (function() {
     }
     grid = new Grid(gridId, columns);
     DomainRegistry.gridRepository().add(grid);
-    DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(ajaxURL));
+    DomainRegistry.setRowRepository(new JQueryAjaxRowRepository(ajaxQueryURL, ajaxCommandURL));
     return null;
   };
 
@@ -39,6 +42,29 @@ GridService = (function() {
       return row.select();
     });
     return null;
+  };
+
+  GridService.prototype.save = function(gridId, rowId) {
+    var rowRepository,
+      _this = this;
+
+    rowRepository = DomainRegistry.rowRepository();
+    rowRepository.save(gridId, rowId, function(error, row) {
+      if (error) {
+        throw new Error(error);
+      }
+      if (row === null) {
+        return null;
+      }
+    });
+    return null;
+  };
+
+  GridService.prototype.saveAll = function(gridId) {
+    var rowRepository;
+
+    rowRepository = DomainRegistry.rowRepository();
+    return rowRepository.saveAll(gridId);
   };
 
   GridService.prototype.unselect = function(gridId, rowId) {

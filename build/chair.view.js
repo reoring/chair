@@ -76,6 +76,14 @@ ViewController = (function() {
     return this.applicationGridService.append(this.gridId, rowId, values);
   };
 
+  ViewController.prototype.save = function(rowId) {
+    return this.applicationGridService.save(this.gridId, rowId);
+  };
+
+  ViewController.prototype.saveAll = function() {
+    return this.applicationGridService.saveAll(this.gridId);
+  };
+
   ViewController.prototype.selectAll = function() {
     return this.applicationGridService.selectAll(this.gridId);
   };

@@ -27,7 +27,6 @@ class ViewController
 					for columnId in row.updatedColumns
 						@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
 
-
 			@cursor() if event.rows.length > 0
 
 		DomainEvent.subscribe 'ColumnUpdated', (event, eventName)=>
@@ -48,6 +47,12 @@ class ViewController
 
 	add: (rowId, values)->
 		@applicationGridService.append @gridId, rowId, values
+
+	save: (rowId)->
+		@applicationGridService.save @gridId, rowId
+
+	saveAll: ()->
+		@applicationGridService.saveAll @gridId
 
 	selectAll: () ->
 		@applicationGridService.selectAll(@gridId)

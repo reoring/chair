@@ -5,8 +5,9 @@ class RowRepository
 
 
 class JQueryAjaxRowRepository extends RowRepository
-    constructor: (ajaxURL)->
-        @ajaxURL = ajaxURL
+    constructor: (ajaxQueryURL, ajaxCommandURL)->
+        @ajaxQueryURL = ajaxQueryURL
+        @ajaxCommandURL = ajaxCommandURL
         @gridContainer = new InMemoryRowContainer()
 
     add: (row)->
@@ -26,9 +27,56 @@ class JQueryAjaxRowRepository extends RowRepository
             # here needs to ajax to fetch that Row?
             callback(null, null)
 
+    save: (gridId, rowId, callback)->
+        callback("Missing argument: gridId", null) unless gridId
+        callback("Missing argument: rowId", null) unless rowId
+
+        row = @gridContainer.get(gridId, rowId)
+
+        return unless row.isModified()
+
+        data = {}
+        data.bulk    = false
+        data.gridId  = gridId
+        data.rowId   = rowId
+        data.columns = JSON.stringify(row.columns)
+        data.deleted = row.deleted
+
+        $.ajax {
+            url: @ajaxCommandURL
+            data: data
+            dataType: 'json'
+            success: (data)=>
+                row.save()
+        }
+
+    saveAll: (gridId, callback)->
+        callback("Missing argument: gridId", null) unless gridId
+
+        modifiedRows = @gridContainer.getModifiedRows(gridId)
+
+        return if Object.keys(modifiedRows).length is 0
+
+        data = {}
+        data.bulk = true
+        data.gridId = gridId
+        data.rows = JSON.stringify(modifiedRows)
+
+        $.ajax {
+            url: @ajaxCommandURL
+            data: data
+            dataType: 'json'
+            success: (data)=>
+                #
+                # TODO save ignore if failed to save on the server side at the some of a rows
+                #
+                for rowId, row of modifiedRows
+                    row.save()
+        }
+
     rowsSpecifiedBy: (condition, callback)->
         $.ajax {
-            url: @ajaxURL
+            url: @ajaxQueryURL
             data: {
                     id:          condition.gridId
                     page:        condition.page
@@ -118,6 +166,20 @@ class InMemoryRowContainer
             return @grids[gridId][rowId]
         else
             return null
+
+    getModifiedRows: (gridId)->
+        throw new Error('Grid ID is required') unless gridId
+        throw new Error('Grid not found: ' + gridId) unless @_gridExists(gridId)
+
+        modifiedRows = {}
+
+        for rowId, row of @grids[gridId]
+            modifiedRows[rowId] = row if row.isModified()
+
+        return modifiedRows
+
+    _gridExists: (gridId)->
+        return @grids[gridId]?
    
     _rowExists: (gridId, rowId)->
         return @grids[gridId]?[rowId]?
@@ -130,5 +192,3 @@ class InMemoryRowContainer
             else
                 columns[name] = value
         return columns
-        
-

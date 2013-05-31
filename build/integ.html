@@ -80,6 +80,7 @@
         padding-top: 2px;
         padding-left: 5px;
     }
+
     i.icon-caret-up {
         padding-top: 2px;
         padding-left: 5px;
@@ -108,6 +109,9 @@
 <br/>
 <input id="select_all"   type="button" value="全選択" />
 <input id="unselect_all" type="button" value="全未選択" />
+
+<input id="save" type="button" value="行保存テスト" />
+<input id="save_all" type="button" value="行全保存テスト" />
 
 <div id="pager"></div>
 
@@ -179,6 +183,13 @@ $ ->
                                 age:  $("input[name=age]").val(),
                                 flag: $("input[name=flag]").val()
                             }
+
+
+    $("#save").on "click", ->
+        window.chair.grid.viewController.save 3
+
+    $("#save_all").on "click", ->
+        window.chair.grid.viewController.saveAll()
 </script>
 
 <script type="text/javascript">

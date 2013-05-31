@@ -1,4 +1,4 @@
-var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, Grid, GridChangeService, GridChanged, GridRepository, InMemoryRowContainer, JQueryAjaxRowRepository, Row, RowAppended, RowRemoved, RowRepository, RowSelected, RowUnselected,
+var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, Grid, GridChangeService, GridChanged, GridRepository, InMemoryRowContainer, JQueryAjaxRowRepository, Row, RowAppended, RowRemoved, RowRepository, RowSaved, RowSelected, RowUnselected,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -421,6 +421,7 @@ Row = (function() {
       columnValue = columns[columnId];
       this.columns[columnId] = "" + columnValue;
     }
+    this.modified = false;
     this.deleted = false;
     this.selected = false;
     this.updatedColumns = [];
@@ -441,12 +442,24 @@ Row = (function() {
       if (this.columns[columnId] === columnValue) {
         return null;
       } else {
+        this.modified = true;
         this.columns[columnId] = columnValue;
         this.updatedColumns.push(columnId);
         DomainEvent.publish('ColumnUpdated', new ColumnUpdated(this.gridId, this.id, columnId, columnValue));
       }
     }
     return null;
+  };
+
+  Row.prototype.isModified = function() {
+    return this.modified;
+  };
+
+  Row.prototype.save = function() {
+    if (this.modified === true) {
+      this.modified = false;
+      return DomainEvent.publish('RowSaved', new RowSaved(this.gridId, this.id));
+    }
   };
 
   Row.prototype.remove = function() {
@@ -531,6 +544,29 @@ RowRemoved = (function() {
 
 })();
 
+RowSaved = (function() {
+  function RowSaved(gridId, rowId) {
+    this.gridId = gridId;
+    this.rowId = rowId;
+    if (!this.gridId) {
+      throw new Error('Grid ID is required');
+    }
+    if (!this.rowId) {
+      throw new Error('Row ID is required');
+    }
+  }
+
+  RowSaved.prototype.serialize = function() {
+    return {
+      gridId: this.gridId,
+      rowId: this.rowId
+    };
+  };
+
+  return RowSaved;
+
+})();
+
 RowSelected = (function() {
   function RowSelected(gridId, rowId) {
     this.gridId = gridId;
@@ -591,8 +627,9 @@ RowRepository = (function() {
 JQueryAjaxRowRepository = (function(_super) {
   __extends(JQueryAjaxRowRepository, _super);
 
-  function JQueryAjaxRowRepository(ajaxURL) {
-    this.ajaxURL = ajaxURL;
+  function JQueryAjaxRowRepository(ajaxQueryURL, ajaxCommandURL) {
+    this.ajaxQueryURL = ajaxQueryURL;
+    this.ajaxCommandURL = ajaxCommandURL;
     this.gridContainer = new InMemoryRowContainer();
   }
 
@@ -623,11 +660,73 @@ JQueryAjaxRowRepository = (function(_super) {
     }
   };
 
+  JQueryAjaxRowRepository.prototype.save = function(gridId, rowId, callback) {
+    var data, row,
+      _this = this;
+
+    if (!gridId) {
+      callback("Missing argument: gridId", null);
+    }
+    if (!rowId) {
+      callback("Missing argument: rowId", null);
+    }
+    row = this.gridContainer.get(gridId, rowId);
+    if (!row.isModified()) {
+      return;
+    }
+    data = {};
+    data.bulk = false;
+    data.gridId = gridId;
+    data.rowId = rowId;
+    data.columns = JSON.stringify(row.columns);
+    data.deleted = row.deleted;
+    return $.ajax({
+      url: this.ajaxCommandURL,
+      data: data,
+      dataType: 'json',
+      success: function(data) {
+        return row.save();
+      }
+    });
+  };
+
+  JQueryAjaxRowRepository.prototype.saveAll = function(gridId, callback) {
+    var data, modifiedRows,
+      _this = this;
+
+    if (!gridId) {
+      callback("Missing argument: gridId", null);
+    }
+    modifiedRows = this.gridContainer.getModifiedRows(gridId);
+    if (Object.keys(modifiedRows).length === 0) {
+      return;
+    }
+    data = {};
+    data.bulk = true;
+    data.gridId = gridId;
+    data.rows = JSON.stringify(modifiedRows);
+    return $.ajax({
+      url: this.ajaxCommandURL,
+      data: data,
+      dataType: 'json',
+      success: function(data) {
+        var row, rowId, _results;
+
+        _results = [];
+        for (rowId in modifiedRows) {
+          row = modifiedRows[rowId];
+          _results.push(row.save());
+        }
+        return _results;
+      }
+    });
+  };
+
   JQueryAjaxRowRepository.prototype.rowsSpecifiedBy = function(condition, callback) {
     var _this = this;
 
     return $.ajax({
-      url: this.ajaxURL,
+      url: this.ajaxQueryURL,
       data: {
         id: condition.gridId,
         page: condition.page,
@@ -764,6 +863,30 @@ InMemoryRowContainer = (function() {
     } else {
       return null;
     }
+  };
+
+  InMemoryRowContainer.prototype.getModifiedRows = function(gridId) {
+    var modifiedRows, row, rowId, _ref;
+
+    if (!gridId) {
+      throw new Error('Grid ID is required');
+    }
+    if (!this._gridExists(gridId)) {
+      throw new Error('Grid not found: ' + gridId);
+    }
+    modifiedRows = {};
+    _ref = this.grids[gridId];
+    for (rowId in _ref) {
+      row = _ref[rowId];
+      if (row.isModified()) {
+        modifiedRows[rowId] = row;
+      }
+    }
+    return modifiedRows;
+  };
+
+  InMemoryRowContainer.prototype._gridExists = function(gridId) {
+    return this.grids[gridId] != null;
   };
 
   InMemoryRowContainer.prototype._rowExists = function(gridId, rowId) {

@@ -419,6 +419,9 @@ Row = (function() {
     for (columnId in columns) {
       if (!__hasProp.call(columns, columnId)) continue;
       columnValue = columns[columnId];
+      if (columnValue === null) {
+        columnValue = '';
+      }
       this.columns[columnId] = "" + columnValue;
     }
     this.modified = false;
@@ -1256,7 +1259,6 @@ Table = (function() {
   };
 
   Table.prototype.filterRowExists = function() {
-    console.log(this.table.find('tbody tr.filter').length);
     return this.table.find('tbody tr.filter').length !== 0;
   };
 

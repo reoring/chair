@@ -142,7 +142,6 @@ class Table
         @moveMode.afterInsert? id, tr
 
     filterRowExists: () ->
-        console.log @table.find('tbody tr.filter').length
         return @table.find('tbody tr.filter').length isnt 0
 
     setFilterRow: (filter) ->

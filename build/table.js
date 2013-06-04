@@ -178,7 +178,6 @@ Table = (function() {
   };
 
   Table.prototype.filterRowExists = function() {
-    console.log(this.table.find('tbody tr.filter').length);
     return this.table.find('tbody tr.filter').length !== 0;
   };
 

@@ -2,6 +2,8 @@ class Row
     constructor: (@id, columns, @gridId = null)->
         @columns = {}
         for own columnId, columnValue of columns
+            if columnValue is null
+                columnValue = ''
             @columns[columnId] = "#{columnValue}"
 
         @modified = false

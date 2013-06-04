@@ -419,6 +419,9 @@ Row = (function() {
     for (columnId in columns) {
       if (!__hasProp.call(columns, columnId)) continue;
       columnValue = columns[columnId];
+      if (columnValue === null) {
+        columnValue = '';
+      }
       this.columns[columnId] = "" + columnValue;
     }
     this.modified = false;

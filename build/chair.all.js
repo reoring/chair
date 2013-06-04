@@ -1801,11 +1801,12 @@ ViewController = (function() {
             columnId = _ref1[_j];
             _this.table.addClassToColumn(_this.table.rowIdOfGlobal(row.id), columnId, 'column_modified');
           }
+          if (event.rows.length > 0) {
+            _this.cursor();
+          }
         }
       }
-      if (event.rows.length > 0) {
-        return _this.cursor();
-      }
+      return null;
     });
     DomainEvent.subscribe('ColumnUpdated', function(event, eventName) {
       return _this.table.addClassToColumn(_this.table.rowIdOfGlobal(event.rowId), event.columnId, 'column_modified');

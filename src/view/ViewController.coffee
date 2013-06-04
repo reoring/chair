@@ -17,18 +17,20 @@ class ViewController
 		@table.setFilterRow() unless @table.filterRowExists()
 
 		DomainEvent.subscribe 'GridChanged', (event, eventName)=>
+			if event.gridId isnt @gridId
+				return null
+
 			@table.removeAllRowsWithout('filter')
 
-			if event.gridId is @gridId
-				for row in event.rows
-					@table.insert row.columns, row.id
-					@table.selectRow row.id, @rowSelectedClass if row.selected is true
+			for row in event.rows
+				@table.insert row.columns, row.id
+				@table.selectRow row.id, @rowSelectedClass if row.selected is true
 
-					for columnId in row.updatedColumns
-						@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
-					
-					if event.rows.length > 0
-						@cursor()
+				for columnId in row.updatedColumns
+					@table.addClassToColumn(@table.rowIdOfGlobal(row.id), columnId, 'column_modified')
+				
+				if event.rows.length > 0
+					@cursor()
 			null
 
 		DomainEvent.subscribe 'ColumnUpdated', (event, eventName)=>

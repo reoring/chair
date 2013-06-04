@@ -1787,23 +1787,24 @@ ViewController = (function() {
     DomainEvent.subscribe('GridChanged', function(event, eventName) {
       var columnId, row, _i, _j, _len, _len1, _ref, _ref1;
 
+      if (event.gridId !== _this.gridId) {
+        return null;
+      }
       _this.table.removeAllRowsWithout('filter');
-      if (event.gridId === _this.gridId) {
-        _ref = event.rows;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          row = _ref[_i];
-          _this.table.insert(row.columns, row.id);
-          if (row.selected === true) {
-            _this.table.selectRow(row.id, _this.rowSelectedClass);
-          }
-          _ref1 = row.updatedColumns;
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            columnId = _ref1[_j];
-            _this.table.addClassToColumn(_this.table.rowIdOfGlobal(row.id), columnId, 'column_modified');
-          }
-          if (event.rows.length > 0) {
-            _this.cursor();
-          }
+      _ref = event.rows;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        _this.table.insert(row.columns, row.id);
+        if (row.selected === true) {
+          _this.table.selectRow(row.id, _this.rowSelectedClass);
+        }
+        _ref1 = row.updatedColumns;
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          columnId = _ref1[_j];
+          _this.table.addClassToColumn(_this.table.rowIdOfGlobal(row.id), columnId, 'column_modified');
+        }
+        if (event.rows.length > 0) {
+          _this.cursor();
         }
       }
       return null;

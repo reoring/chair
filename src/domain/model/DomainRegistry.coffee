@@ -11,7 +11,9 @@ DomainRegistry =
         throw new Error('Row Repository has not been initialized') unless @_rowRepository
         return @_rowRepository
 
-    setRowRepository: (@_rowRepository)->
+    setRowRepository: (rowRepository)->
+        if @_rowRepository is null
+            @_rowRepository = rowRepository
 
     gridChangeService: ()->
         return new GridChangeService()

@@ -92,8 +92,10 @@ DomainRegistry = {
     }
     return this._rowRepository;
   },
-  setRowRepository: function(_rowRepository) {
-    this._rowRepository = _rowRepository;
+  setRowRepository: function(rowRepository) {
+    if (this._rowRepository === null) {
+      return this._rowRepository = rowRepository;
+    }
   },
   gridChangeService: function() {
     return new GridChangeService();

@@ -32,6 +32,9 @@ class Row
     isModified: ()->
         return @modified
 
+    isDeleted: ()->
+        return @deleted
+
     save: ()->
         if @modified is true
             @modified = false

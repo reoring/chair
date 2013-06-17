@@ -54,8 +54,12 @@ class JQueryAjaxRowRepository extends RowRepository
         callback("Missing argument: gridId", null) unless gridId
 
         modifiedRows = @gridContainer.getModifiedRows(gridId)
+        deletedRows  = @gridContainer.getDeletedRows(gridId)
 
-        return if Object.keys(modifiedRows).length is 0
+        modified = Object.keys(modifiedRows).length is 0
+        deleted  = Object.keys(deletedRows).length is 0
+
+        return if (modified == true && deleted == true)
 
         data = {}
         data.bulk = true
@@ -177,6 +181,17 @@ class InMemoryRowContainer
             modifiedRows[rowId] = row if row.isModified()
 
         return modifiedRows
+
+    getDeletedRows: (gridId)->
+        throw new Error('Grid ID is required') unless gridId
+        throw new Error('Grid not found: ' + gridId) unless @_gridExists(gridId)
+
+        deletedRows = {}
+
+        for rowId, row of @grids[gridId]
+            deletedRows[rowId] = row if row.isDeleted()
+
+        return deletedRows
 
     _gridExists: (gridId)->
         return @grids[gridId]?

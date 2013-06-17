@@ -53,18 +53,21 @@ class Table
                 columnId = $(this).attr('data-column-id')
                 i = $(this).find('i')
 
-                if i.hasClass 'icon-caret-down'
+                if i.hasClass 'icon-caret-up'
                     i.removeClass()
                     $(this).parents('tr').find('i').each (index, element) ->
-                        $(element).removeClass()
-                    i.addClass 'icon-caret-up'
-                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'asc'
+                      $(element).removeClass()
+                    i.addClass 'icon-caret-down'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'desc'
+                else if i.hasClass 'icon-caret-down'
+                    i.removeClass()
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'none'
                 else
                     i.removeClass()
                     $(this).parents('tr').find('i').each (index, element) ->
-                        $(element).removeClass()
-                    i.addClass 'icon-caret-down'
-                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'desc'
+                      $(element).removeClass()
+                    i.addClass 'icon-caret-up'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'asc'
 
             span = $('<span></span>')
             span.append column.title
@@ -192,6 +195,9 @@ class Table
         @addClassToRow @rowIdOfGlobal(rowId), cssClass
         @moveMode.afterRowSelect? rowId
 
+    removeRow: (rowId) ->
+        @findRow(rowId).remove()
+
     unselectRow: (rowId, cssClass) ->
         @moveMode.beforeRowUnselect? rowId
         @removeClassFromRow @rowIdOfGlobal(rowId), cssClass
@@ -208,6 +214,9 @@ class Table
 
     removeClassFromRow: (id, className) ->
         @findRow(id).removeClass(className)
+
+    removeClassFromRowColumns: (id, className) ->
+        @findRow(id).find('td').removeClass(className)
 
     removeAllRows: () ->
         @reset()

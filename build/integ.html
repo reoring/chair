@@ -113,6 +113,9 @@
 <input id="save" type="button" value="行保存テスト" />
 <input id="save_all" type="button" value="行全保存テスト" />
 
+<input id="remove" type="button" value="行削除テスト" />
+<input id="remove_selected_rows" type="button" value="選択行削除テスト" />
+
 <div id="pager"></div>
 
 <script type="text/javascript">
@@ -163,6 +166,7 @@ $ ->
         new ViewController('block_id.list',
                            columnConfigJSON,
                            url,
+                           url,
                            "#chair_table",
                            'row_selected'
                            'excel')
@@ -184,9 +188,14 @@ $ ->
                                 flag: $("input[name=flag]").val()
                             }
 
-
     $("#save").on "click", ->
         window.chair.grid.viewController.save 3
+
+    $("#remove").on "click", ->
+        window.chair.grid.viewController.remove 3
+
+    $("#remove_selected_rows").on "click", ->
+        window.chair.grid.viewController.removeSelectedRows()
 
     $("#save_all").on "click", ->
         window.chair.grid.viewController.saveAll()

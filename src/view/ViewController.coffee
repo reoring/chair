@@ -1,8 +1,9 @@
 class ViewController
-	constructor: (@gridId, @columnConfigJSON, ajaxURL, @tableSelector, @rowSelectedClass = 'row_selected', @moveModeName) ->
+	constructor: (@gridId, @columnConfigJSON, ajaxURL, ajaxCommandURL, @tableSelector, @rowSelectedClass = 'row_selected', @moveModeName) ->
 		@rowModifiedClass = 'row_modified'
 		@applicationGridService = new GridService
-		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL)
+		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL, ajaxCommandURL)
+		@selectedRows = {}
 
 	startup: (@page, @rowsPerGrid)->
 		moveMode = MoveModeFactory.create @moveModeName
@@ -39,11 +40,19 @@ class ViewController
 		DomainEvent.subscribe 'RowAppended', (event, eventName)=>
 			@table.insert event.columns, event.rowId if event.gridId is @gridId
 
+		DomainEvent.subscribe 'RowRemoved', (event, eventName)=>
+			@table.removeRow(event.gridId + '.' + event.rowId)
+
+		DomainEvent.subscribe 'RowSaved', (event, eventName)=>
+			@table.removeClassFromRowColumns(event.gridId + '.' + event.rowId, 'column_modified')
+
 		DomainEvent.subscribe 'RowSelected', (event, eventName)=>
 			@table.selectRow event.rowId, @rowSelectedClass if event.gridId is @gridId
+			@selectedRows[event.rowId] = true
 
 		DomainEvent.subscribe 'RowUnselected', (event, eventName)=>
 			@table.unselectRow event.rowId, @rowSelectedClass if event.gridId is @gridId
+			delete @selectedRows[event.rowId]
 
 		ViewEvent.subscribe 'ViewFilterChanged', (event, eventName)=>
 			@applicationGridService.change @gridId, @page, @rowsPerGrid, JSON.stringify(event)
@@ -54,6 +63,13 @@ class ViewController
 
 	save: (rowId)->
 		@applicationGridService.save @gridId, rowId
+
+	remove: (rowId)->
+		@applicationGridService.removeRow @gridId, rowId
+
+	removeSelectedRows: ->
+		for id, value of @selectedRows
+			@remove(id)
 
 	saveAll: ()->
 		@applicationGridService.saveAll @gridId

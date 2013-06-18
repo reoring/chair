@@ -17,7 +17,7 @@ module.exports = (grunt) ->
         regarde:
             fred:
                 files: ['**/*.html', '**/*.coffee', '**/*.json']
-                tasks: ['coffee','livereload']
+                tasks: ['coffee', 'uglify', 'copy', 'livereload']
 
         pkg: grunt.file.readJSON("package.json")
 
@@ -75,8 +75,15 @@ module.exports = (grunt) ->
                 src: "build/<%= pkg.name %>.all.js"
                 dest: "build/<%= pkg.name %>.all.min.js"
 
+        copy:
+            main:
+                files: [
+                  {expand: false, src: ['build/chair.all.js'], dest: '/Users/morireo/PhpstormProjects/fusion/web/components/chair/chair.all.min.js'},
+                ]
+
     grunt.loadNpmTasks "grunt-contrib-coffee"
     grunt.loadNpmTasks "grunt-contrib-uglify"
+    grunt.loadNpmTasks "grunt-contrib-copy"
 
     grunt.loadNpmTasks "grunt-regarde"
     grunt.loadNpmTasks "grunt-contrib-connect"

@@ -59,16 +59,14 @@ class ViewController
 			delete @selectedRows[event.rowId]
 
 		ViewEvent.subscribe 'ViewFilterChanged', (event, eventName)=>
-			@filter = JSON.stringify(event)
+			return if event.tableId isnt @gridId
+			@filter = JSON.stringify(event.filterConditions)
 			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
 
 		ViewEvent.subscribe 'ViewSortChanged', (event, eventName)=>
-			console.log 'ViewSortChanged start'
-			console.log eventName, event
 			@sort = event.columnId
 			@direction = event.direction
 			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
-			console.log 'ViewSortChanged done'
 
 	add: (rowId, values)->
 		@applicationGridService.append @gridId, rowId, values

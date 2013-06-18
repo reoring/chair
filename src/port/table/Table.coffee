@@ -177,15 +177,15 @@ class Table
             window.clearTimeout @timeoutID
 
             @timeoutID = setTimeout(
-                ->
+                =>
                     filterConditions = []
 
-                    $('.filter_input').each (i, input) ->
+                    $(@table).find('.filter_input').each (i, input) ->
                         columnId = $(input).attr('data-filter-column')
                         value = $(input).val()
                         filterConditions.push {columnId: columnId, value: value}
 
-                    ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged filterConditions)
+                    ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged(@tableId, filterConditions))
                 , 450)
 
         td.append input
@@ -332,15 +332,15 @@ class Table
 
 
 class ViewFilterChanged
-    constructor: (@filterConditions) ->
+    constructor: (@tableId, @filterConditions) ->
 
     serialize: ->
-        serializedFilterConditions = {}
+        filterConditions = {}
 
         for condition in @filterConditions
-            serializedFilterConditions[condition.columnId] = condition.value
+            filterConditions[condition.columnId] = condition.value
 
-        return serializedFilterConditions
+        return {tableId: @tableId, filterConditions: filterConditions}
 
 class ViewSortChanged
     constructor: (@columnId, @direction) ->

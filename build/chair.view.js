@@ -86,16 +86,16 @@ ViewController = (function() {
       return delete _this.selectedRows[event.rowId];
     });
     ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
-      _this.filter = JSON.stringify(event);
+      if (event.tableId !== _this.gridId) {
+        return;
+      }
+      _this.filter = JSON.stringify(event.filterConditions);
       return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
     });
     return ViewEvent.subscribe('ViewSortChanged', function(event, eventName) {
-      console.log('ViewSortChanged start');
-      console.log(eventName, event);
       _this.sort = event.columnId;
       _this.direction = event.direction;
-      _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
-      return console.log('ViewSortChanged done');
+      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
     });
   };
 

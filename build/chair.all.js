@@ -1135,20 +1135,11 @@ Table = (function() {
     this.columnConfig = JSON.parse(columnConfigJSON);
     this.currentCursor = void 0;
     $(document).on('keydown', function(event) {
-      var currentRow, nextRow, rowId;
+      var currentRow, nextRow;
 
       currentRow = _this.findRow(_this.currentCursor);
       if (currentRow.length === 0) {
         return;
-      }
-      if (event.which === 32) {
-        event.preventDefault();
-        rowId = currentRow.attr('data-id').split('.')[2];
-        if (currentRow.hasClass('row_selected')) {
-          _this.gridService.unselect(_this.tableId, rowId);
-        } else {
-          _this.gridService.select(_this.tableId, rowId);
-        }
       }
       if (event.which === 40) {
         event.preventDefault();
@@ -1347,7 +1338,7 @@ Table = (function() {
         var filterConditions;
 
         filterConditions = [];
-        $('.filter_input').each(function(i, input) {
+        $(_this.table).find('.filter_input').each(function(i, input) {
           var columnId;
 
           columnId = $(input).attr('data-filter-column');
@@ -1357,7 +1348,7 @@ Table = (function() {
             value: value
           });
         });
-        return ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged(filterConditions));
+        return ViewEvent.publish("ViewFilterChanged", new ViewFilterChanged(_this.tableId, filterConditions));
       }, 450);
     });
     return td.append(input);
@@ -1592,20 +1583,24 @@ Table = (function() {
 })();
 
 ViewFilterChanged = (function() {
-  function ViewFilterChanged(filterConditions) {
+  function ViewFilterChanged(tableId, filterConditions) {
+    this.tableId = tableId;
     this.filterConditions = filterConditions;
   }
 
   ViewFilterChanged.prototype.serialize = function() {
-    var condition, serializedFilterConditions, _i, _len, _ref;
+    var condition, filterConditions, _i, _len, _ref;
 
-    serializedFilterConditions = {};
+    filterConditions = {};
     _ref = this.filterConditions;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       condition = _ref[_i];
-      serializedFilterConditions[condition.columnId] = condition.value;
+      filterConditions[condition.columnId] = condition.value;
     }
-    return serializedFilterConditions;
+    return {
+      tableId: this.tableId,
+      filterConditions: filterConditions
+    };
   };
 
   return ViewFilterChanged;
@@ -1896,16 +1891,16 @@ ViewController = (function() {
       return delete _this.selectedRows[event.rowId];
     });
     ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
-      _this.filter = JSON.stringify(event);
+      if (event.tableId !== _this.gridId) {
+        return;
+      }
+      _this.filter = JSON.stringify(event.filterConditions);
       return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
     });
     return ViewEvent.subscribe('ViewSortChanged', function(event, eventName) {
-      console.log('ViewSortChanged start');
-      console.log(eventName, event);
       _this.sort = event.columnId;
       _this.direction = event.direction;
-      _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
-      return console.log('ViewSortChanged done');
+      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
     });
   };
 

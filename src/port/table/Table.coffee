@@ -14,14 +14,14 @@ class Table
             if currentRow.length is 0
                 return
 
-            if event.which is 32 # space
-                event.preventDefault()
-                rowId = currentRow.attr('data-id').split('.')[2]
+            #if event.which is 32 # space
+            #    event.preventDefault()
+            #    rowId = currentRow.attr('data-id').split('.')[2]
 
-                if currentRow.hasClass 'row_selected'
-                    @gridService.unselect @tableId, rowId
-                else
-                    @gridService.select @tableId, rowId
+            #    if currentRow.hasClass 'row_selected'
+            #        @gridService.unselect @tableId, rowId
+            #    else
+            #        @gridService.select @tableId, rowId
 
             if event.which is 40 # down cursor
                 event.preventDefault()

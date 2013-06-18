@@ -338,7 +338,7 @@ GridChanged = (function() {
 GridChangeService = (function() {
   function GridChangeService() {}
 
-  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
+  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -361,7 +361,10 @@ GridChangeService = (function() {
         gridId: grid.id,
         page: page,
         rowsPerGrid: rowsPerGrid,
-        filter: filter
+        filter: filter,
+        additionalFilter: additionalFilter,
+        sort: sort,
+        direction: direction
       };
       return DomainRegistry.rowRepository().rowsSpecifiedBy(condition, function(error, response) {
         if (error) {
@@ -370,7 +373,10 @@ GridChangeService = (function() {
         if (condition.filter !== void 0) {
           filter = JSON.parse(condition.filter);
         }
-        return grid.change(response.rows, condition.page, response.total, condition.rowsPerGrid, filter);
+        if (condition.additionalFilter !== void 0) {
+          additionalFilter = JSON.parse(condition.additionalFilter);
+        }
+        return grid.change(response.rows, condition.page, response.total, condition.rowsPerGrid, filter, additionalFilter);
       });
     });
     return null;
@@ -458,6 +464,10 @@ Row = (function() {
 
   Row.prototype.isModified = function() {
     return this.modified;
+  };
+
+  Row.prototype.isDeleted = function() {
+    return this.deleted;
   };
 
   Row.prototype.save = function() {
@@ -696,14 +706,17 @@ JQueryAjaxRowRepository = (function(_super) {
   };
 
   JQueryAjaxRowRepository.prototype.saveAll = function(gridId, callback) {
-    var data, modifiedRows,
+    var data, deleted, deletedRows, modified, modifiedRows,
       _this = this;
 
     if (!gridId) {
       callback("Missing argument: gridId", null);
     }
     modifiedRows = this.gridContainer.getModifiedRows(gridId);
-    if (Object.keys(modifiedRows).length === 0) {
+    deletedRows = this.gridContainer.getDeletedRows(gridId);
+    modified = Object.keys(modifiedRows).length === 0;
+    deleted = Object.keys(deletedRows).length === 0;
+    if (modified === true && deleted === true) {
       return;
     }
     data = {};
@@ -736,7 +749,10 @@ JQueryAjaxRowRepository = (function(_super) {
         id: condition.gridId,
         page: condition.page,
         rowsPerGrid: condition.rowsPerGrid,
-        filter: condition.filter
+        filter: condition.filter,
+        additionalFilter: condition.additionalFilter,
+        sort: condition.sort,
+        direction: condition.direction
       },
       dataType: 'json',
       success: function(data) {
@@ -888,6 +904,26 @@ InMemoryRowContainer = (function() {
       }
     }
     return modifiedRows;
+  };
+
+  InMemoryRowContainer.prototype.getDeletedRows = function(gridId) {
+    var deletedRows, row, rowId, _ref;
+
+    if (!gridId) {
+      throw new Error('Grid ID is required');
+    }
+    if (!this._gridExists(gridId)) {
+      throw new Error('Grid not found: ' + gridId);
+    }
+    deletedRows = {};
+    _ref = this.grids[gridId];
+    for (rowId in _ref) {
+      row = _ref[rowId];
+      if (row.isDeleted()) {
+        deletedRows[rowId] = row;
+      }
+    }
+    return deletedRows;
   };
 
   InMemoryRowContainer.prototype._gridExists = function(gridId) {

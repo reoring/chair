@@ -88,6 +88,8 @@ class JQueryAjaxRowRepository extends RowRepository
                     rowsPerGrid:      condition.rowsPerGrid
                     filter:           condition.filter
                     additionalFilter: condition.additionalFilter
+                    sort:             condition.sort
+                    direction:        condition.direction
                   }
 
             dataType: 'json'

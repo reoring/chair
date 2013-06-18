@@ -1,5 +1,5 @@
 class GridChangeService
-    change: (gridId, page, rowsPerGrid, filter, additionalFilter)->
+    change: (gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction)->
         throw new Error('Grid ID is required') unless gridId
         throw new Error('Page is required') unless page
         throw new Error('Rows Per Grid is required') unless rowsPerGrid
@@ -12,8 +12,10 @@ class GridChangeService
                 gridId: grid.id
                 page: page
                 rowsPerGrid: rowsPerGrid
-                filter: filter,
+                filter: filter
                 additionalFilter: additionalFilter
+                sort: sort
+                direction: direction
             }
 
             DomainRegistry.rowRepository().rowsSpecifiedBy condition, (error, response)->

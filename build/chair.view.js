@@ -1,15 +1,23 @@
-var ViewController, ViewEvent;
+var ViewController, ViewEvent,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 ViewController = (function() {
-  function ViewController(gridId, columnConfigJSON, ajaxURL, tableSelector, rowSelectedClass, moveModeName) {
+  function ViewController(gridId, columnConfigJSON, ajaxURL, ajaxCommandURL, tableSelector, rowSelectedClass, moveModeName) {
     this.gridId = gridId;
     this.columnConfigJSON = columnConfigJSON;
     this.tableSelector = tableSelector;
     this.rowSelectedClass = rowSelectedClass != null ? rowSelectedClass : 'row_selected';
     this.moveModeName = moveModeName;
+    this.additionalFilter = __bind(this.additionalFilter, this);
+    this.movePageTo = __bind(this.movePageTo, this);
     this.rowModifiedClass = 'row_modified';
     this.applicationGridService = new GridService;
-    this.applicationGridService.startup(this.gridId, columnConfigJSON, ajaxURL);
+    this.applicationGridService.startup(this.gridId, columnConfigJSON, ajaxURL, ajaxCommandURL);
+    this.selectedRows = {};
+    this.filter = void 0;
+    this._additionalFilter = null;
+    this.sort = null;
+    this.direction = null;
   }
 
   ViewController.prototype.startup = function(page, rowsPerGrid) {
@@ -59,18 +67,35 @@ ViewController = (function() {
         return _this.table.insert(event.columns, event.rowId);
       }
     });
+    DomainEvent.subscribe('RowRemoved', function(event, eventName) {
+      return _this.table.removeRow(event.gridId + '.' + event.rowId);
+    });
+    DomainEvent.subscribe('RowSaved', function(event, eventName) {
+      return _this.table.removeClassFromRowColumns(event.gridId + '.' + event.rowId, 'column_modified');
+    });
     DomainEvent.subscribe('RowSelected', function(event, eventName) {
       if (event.gridId === _this.gridId) {
-        return _this.table.selectRow(event.rowId, _this.rowSelectedClass);
+        _this.table.selectRow(event.rowId, _this.rowSelectedClass);
       }
+      return _this.selectedRows[event.rowId] = true;
     });
     DomainEvent.subscribe('RowUnselected', function(event, eventName) {
       if (event.gridId === _this.gridId) {
-        return _this.table.unselectRow(event.rowId, _this.rowSelectedClass);
+        _this.table.unselectRow(event.rowId, _this.rowSelectedClass);
       }
+      return delete _this.selectedRows[event.rowId];
     });
-    return ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
-      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, JSON.stringify(event));
+    ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
+      _this.filter = JSON.stringify(event);
+      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
+    });
+    return ViewEvent.subscribe('ViewSortChanged', function(event, eventName) {
+      console.log('ViewSortChanged start');
+      console.log(eventName, event);
+      _this.sort = event.columnId;
+      _this.direction = event.direction;
+      _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
+      return console.log('ViewSortChanged done');
     });
   };
 
@@ -80,6 +105,22 @@ ViewController = (function() {
 
   ViewController.prototype.save = function(rowId) {
     return this.applicationGridService.save(this.gridId, rowId);
+  };
+
+  ViewController.prototype.remove = function(rowId) {
+    return this.applicationGridService.removeRow(this.gridId, rowId);
+  };
+
+  ViewController.prototype.removeSelectedRows = function() {
+    var id, value, _ref, _results;
+
+    _ref = this.selectedRows;
+    _results = [];
+    for (id in _ref) {
+      value = _ref[id];
+      _results.push(this.remove(id));
+    }
+    return _results;
   };
 
   ViewController.prototype.saveAll = function() {
@@ -96,7 +137,12 @@ ViewController = (function() {
 
   ViewController.prototype.movePageTo = function(page) {
     this.page = page;
-    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid);
+    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid, this.filter, this._additionalFilter, this.sort, this.direction);
+  };
+
+  ViewController.prototype.additionalFilter = function(_additionalFilter) {
+    this._additionalFilter = _additionalFilter;
+    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid, this.filter, this._additionalFilter, this.sort, this.direction);
   };
 
   ViewController.prototype.cursor = function(rowId) {

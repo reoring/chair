@@ -145,7 +145,7 @@ GridService = (function() {
     return null;
   };
 
-  GridService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
+  GridService.prototype.change = function(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -155,7 +155,7 @@ GridService = (function() {
     if (!rowsPerGrid) {
       throw new Error('Rows Per Grid is required');
     }
-    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter);
+    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction);
     return null;
   };
 

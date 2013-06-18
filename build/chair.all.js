@@ -1,6 +1,7 @@
 var AllRowsSelected, AllRowsUnselected, Column, ColumnFormat, ColumnUpdated, DomainEvent, DomainRegistry, ExcelMoveMode, Grid, GridChangeService, GridChanged, GridRepository, GridService, InMemoryRowContainer, JQueryAjaxRowRepository, MoveModeFactory, Row, RowAppended, RowRemoved, RowRepository, RowSaved, RowSelected, RowUnselected, SequenceMoveMode, Table, TableUIHelper, ViewController, ViewEvent, ViewFilterChanged, ViewSortChanged,
   __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 Column = (function() {
   function Column(columnId, name, formats) {
@@ -14,6 +15,7 @@ Column = (function() {
 
   Column.prototype.format = function(columnValue) {
     var format, _i, _len, _ref;
+
     columnValue = this.escapeHTML(columnValue);
     _ref = this.formats;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -50,6 +52,7 @@ DomainEvent = {
   },
   publish: function(eventName, event) {
     var eventData, subscriber, _i, _j, _len, _len1, _ref, _ref1;
+
     if (!(eventName in this.channels)) {
       this.channels[eventName] = [];
     }
@@ -109,6 +112,7 @@ Grid = (function() {
 
   function Grid(id, columns) {
     var column, _i, _len;
+
     this.id = id;
     if (!this.id) {
       throw new Error('Grid ID is required');
@@ -150,8 +154,10 @@ Grid = (function() {
 
   Grid.prototype.rows = function() {
     var key, row;
+
     return (function() {
       var _ref, _results;
+
       _ref = this._rows;
       _results = [];
       for (key in _ref) {
@@ -165,6 +171,7 @@ Grid = (function() {
 
   Grid.prototype.change = function(rows, page, total, rowsPerGrid, filter) {
     var row, _i, _len;
+
     this._rows = {};
     for (_i = 0, _len = rows.length; _i < _len; _i++) {
       row = rows[_i];
@@ -208,6 +215,7 @@ Grid = (function() {
 RowAppended = (function() {
   function RowAppended(gridId, rowId, columns) {
     var key, value;
+
     this.gridId = gridId;
     this.rowId = rowId;
     if (!this.gridId) {
@@ -277,6 +285,7 @@ AllRowsUnselected = (function() {
 GridChanged = (function() {
   function GridChanged(gridId, rows, page, total, rowsPerGrid, filter) {
     var row, _i, _len;
+
     this.gridId = gridId;
     this.page = page;
     this.total = total;
@@ -330,7 +339,7 @@ GridChanged = (function() {
 GridChangeService = (function() {
   function GridChangeService() {}
 
-  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
+  GridChangeService.prototype.change = function(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -342,6 +351,7 @@ GridChangeService = (function() {
     }
     DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
       var condition;
+
       if (error) {
         throw new Error(error);
       }
@@ -352,7 +362,10 @@ GridChangeService = (function() {
         gridId: grid.id,
         page: page,
         rowsPerGrid: rowsPerGrid,
-        filter: filter
+        filter: filter,
+        additionalFilter: additionalFilter,
+        sort: sort,
+        direction: direction
       };
       return DomainRegistry.rowRepository().rowsSpecifiedBy(condition, function(error, response) {
         if (error) {
@@ -361,7 +374,10 @@ GridChangeService = (function() {
         if (condition.filter !== void 0) {
           filter = JSON.parse(condition.filter);
         }
-        return grid.change(response.rows, condition.page, response.total, condition.rowsPerGrid, filter);
+        if (condition.additionalFilter !== void 0) {
+          additionalFilter = JSON.parse(condition.additionalFilter);
+        }
+        return grid.change(response.rows, condition.page, response.total, condition.rowsPerGrid, filter, additionalFilter);
       });
     });
     return null;
@@ -374,6 +390,7 @@ GridChangeService = (function() {
 GridRepository = (function() {
   function GridRepository(grids) {
     var grid, _i, _len;
+
     if (grids == null) {
       grids = [];
     }
@@ -404,6 +421,7 @@ Row = (function() {
   function Row(id, columns, gridId) {
     var columnId, columnValue,
       _this = this;
+
     this.id = id;
     this.gridId = gridId != null ? gridId : null;
     this.columns = {};
@@ -643,6 +661,7 @@ JQueryAjaxRowRepository = (function(_super) {
 
   JQueryAjaxRowRepository.prototype.rowOfId = function(gridId, rowId, callback) {
     var row;
+
     if (!gridId) {
       callback("Missing argument: gridId", null);
     }
@@ -660,6 +679,7 @@ JQueryAjaxRowRepository = (function(_super) {
   JQueryAjaxRowRepository.prototype.save = function(gridId, rowId, callback) {
     var data, row,
       _this = this;
+
     if (!gridId) {
       callback("Missing argument: gridId", null);
     }
@@ -689,6 +709,7 @@ JQueryAjaxRowRepository = (function(_super) {
   JQueryAjaxRowRepository.prototype.saveAll = function(gridId, callback) {
     var data, deleted, deletedRows, modified, modifiedRows,
       _this = this;
+
     if (!gridId) {
       callback("Missing argument: gridId", null);
     }
@@ -709,6 +730,7 @@ JQueryAjaxRowRepository = (function(_super) {
       dataType: 'json',
       success: function(data) {
         var row, rowId, _results;
+
         _results = [];
         for (rowId in modifiedRows) {
           row = modifiedRows[rowId];
@@ -721,17 +743,22 @@ JQueryAjaxRowRepository = (function(_super) {
 
   JQueryAjaxRowRepository.prototype.rowsSpecifiedBy = function(condition, callback) {
     var _this = this;
+
     return $.ajax({
       url: this.ajaxQueryURL,
       data: {
         id: condition.gridId,
         page: condition.page,
         rowsPerGrid: condition.rowsPerGrid,
-        filter: condition.filter
+        filter: condition.filter,
+        additionalFilter: condition.additionalFilter,
+        sort: condition.sort,
+        direction: condition.direction
       },
       dataType: 'json',
       success: function(data) {
         var gridId, response, row, rowData, rows, rowsForResponse, _i, _j, _len, _len1, _ref, _ref1;
+
         if (typeof data !== 'object') {
           return callback("Response is not object", null);
         }
@@ -787,6 +814,7 @@ InMemoryRowContainer = (function() {
   InMemoryRowContainer.prototype.addByData = function(gridId, rowData) {
     var columns, rowId,
       _this = this;
+
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -806,6 +834,7 @@ InMemoryRowContainer = (function() {
     columns = this._removeIdFromColumns(rowData, 'id');
     DomainRegistry.gridRepository().gridOfId(gridId, function(error, grid) {
       var row;
+
       if (error) {
         throw new Error('Failed to find Grid');
       }
@@ -825,6 +854,7 @@ InMemoryRowContainer = (function() {
 
   InMemoryRowContainer.prototype.add = function(row) {
     var gridId, rowId;
+
     if (!(row instanceof Row)) {
       throw new Error('Row must be instanceof Row');
     }
@@ -859,6 +889,7 @@ InMemoryRowContainer = (function() {
 
   InMemoryRowContainer.prototype.getModifiedRows = function(gridId) {
     var modifiedRows, row, rowId, _ref;
+
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -878,6 +909,7 @@ InMemoryRowContainer = (function() {
 
   InMemoryRowContainer.prototype.getDeletedRows = function(gridId) {
     var deletedRows, row, rowId, _ref;
+
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -901,11 +933,13 @@ InMemoryRowContainer = (function() {
 
   InMemoryRowContainer.prototype._rowExists = function(gridId, rowId) {
     var _ref;
+
     return ((_ref = this.grids[gridId]) != null ? _ref[rowId] : void 0) != null;
   };
 
   InMemoryRowContainer.prototype._removeIdFromColumns = function(rowData, idKey) {
     var columns, name, value;
+
     columns = {};
     for (name in rowData) {
       if (!__hasProp.call(rowData, name)) continue;
@@ -928,6 +962,7 @@ GridService = (function() {
 
   GridService.prototype.startup = function(gridId, columnsConfig, ajaxQueryURL, ajaxCommandURL) {
     var columns, config, formats, grid, _i, _len;
+
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -969,6 +1004,7 @@ GridService = (function() {
   GridService.prototype.save = function(gridId, rowId) {
     var rowRepository,
       _this = this;
+
     rowRepository = DomainRegistry.rowRepository();
     rowRepository.save(gridId, rowId, function(error, row) {
       if (error) {
@@ -983,6 +1019,7 @@ GridService = (function() {
 
   GridService.prototype.saveAll = function(gridId) {
     var rowRepository;
+
     rowRepository = DomainRegistry.rowRepository();
     return rowRepository.saveAll(gridId);
   };
@@ -1065,7 +1102,7 @@ GridService = (function() {
     return null;
   };
 
-  GridService.prototype.change = function(gridId, page, rowsPerGrid, filter) {
+  GridService.prototype.change = function(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction) {
     if (!gridId) {
       throw new Error('Grid ID is required');
     }
@@ -1075,7 +1112,7 @@ GridService = (function() {
     if (!rowsPerGrid) {
       throw new Error('Rows Per Grid is required');
     }
-    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter);
+    DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction);
     return null;
   };
 
@@ -1086,6 +1123,7 @@ GridService = (function() {
 Table = (function() {
   function Table(tableId, table, moveMode, gridService, columnConfigJSON) {
     var _this = this;
+
     this.tableId = tableId;
     this.table = table;
     this.moveMode = moveMode;
@@ -1097,6 +1135,7 @@ Table = (function() {
     this.currentCursor = void 0;
     $(document).on('keydown', function(event) {
       var currentRow, nextRow, rowId;
+
       currentRow = _this.findRow(_this.currentCursor);
       if (currentRow.length === 0) {
         return;
@@ -1139,6 +1178,7 @@ Table = (function() {
 
   Table.prototype.header = function(columns) {
     var column, newTr, span, th, _base, _base1, _i, _len, _ref;
+
     this.columns = columns;
     newTr = $('<tr></tr>');
     if (typeof (_base = this.moveMode).beforeHeader === "function") {
@@ -1150,6 +1190,7 @@ Table = (function() {
       th = $('<th></th>').attr('data-column-id', column.id);
       th.on('click', function() {
         var columnId, i;
+
         columnId = $(this).attr('data-column-id');
         i = $(this).find('i');
         if (i.hasClass('icon-caret-up')) {
@@ -1190,6 +1231,7 @@ Table = (function() {
 
   Table.prototype.removeById = function(id) {
     var data;
+
     this.findRow(id).remove;
     data = this.getById(id);
     delete this.rowsById[id];
@@ -1198,6 +1240,7 @@ Table = (function() {
 
   Table.prototype.updateById = function(rowId, data) {
     var columnIndex, id, newTr, oldTr, x, _i, _len;
+
     id = this.rowIdOfGlobal(rowId);
     newTr = $('<tr></tr>').attr('data-id', id);
     oldTr = $(this.table).find('tr[data-id="' + id + '"]');
@@ -1213,6 +1256,7 @@ Table = (function() {
 
   Table.prototype.cursorTop = function() {
     var row;
+
     row = this.get(0);
     return this.cursorRow(this.rowIdOfGlobal(row.id));
   };
@@ -1233,6 +1277,7 @@ Table = (function() {
 
   Table.prototype.insert = function(data, id) {
     var columnConfig, rowId, tr, _base, _base1, _i, _len, _ref;
+
     if (id === void 0) {
       id = this.guid();
     }
@@ -1261,6 +1306,7 @@ Table = (function() {
 
   Table.prototype.setFilterRow = function(filter) {
     var columnConfig, tr, _base, _i, _len, _ref;
+
     if (filter === void 0) {
       filter = {};
     }
@@ -1278,6 +1324,7 @@ Table = (function() {
 
   Table.prototype.createRowColumn = function(column, value) {
     var td;
+
     td = $('<td></td>');
     td.addClass(column).attr('data-column', column.id);
     td.attr('data-column-editable', column.editable);
@@ -1290,15 +1337,18 @@ Table = (function() {
   Table.prototype.createFilterColumn = function(columnConfig, value) {
     var input, td,
       _this = this;
+
     td = $('<td></td>');
     input = $('<input></input>').attr('type', 'text').attr('data-filter-column', columnConfig.id).val(value).addClass('filter_input');
     input.on('keyup', function() {
       window.clearTimeout(_this.timeoutID);
       return _this.timeoutID = setTimeout(function() {
         var filterConditions;
+
         filterConditions = [];
         $('.filter_input').each(function(i, input) {
           var columnId;
+
           columnId = $(input).attr('data-filter-column');
           value = $(input).val();
           return filterConditions.push({
@@ -1314,6 +1364,7 @@ Table = (function() {
 
   Table.prototype.selectRow = function(rowId, cssClass) {
     var _base, _base1;
+
     if (typeof (_base = this.moveMode).beforeRowSelect === "function") {
       _base.beforeRowSelect(rowId);
     }
@@ -1327,6 +1378,7 @@ Table = (function() {
 
   Table.prototype.unselectRow = function(rowId, cssClass) {
     var _base, _base1;
+
     if (typeof (_base = this.moveMode).beforeRowUnselect === "function") {
       _base.beforeRowUnselect(rowId);
     }
@@ -1336,6 +1388,7 @@ Table = (function() {
 
   Table.prototype.addClassToRow = function(id, className) {
     var row;
+
     row = $(this.findRow(id));
     if (!row.hasClass(className)) {
       return row.addClass(className);
@@ -1344,6 +1397,7 @@ Table = (function() {
 
   Table.prototype.addClassToColumn = function(rowId, columnName, className) {
     var column, row;
+
     row = this.findRow(rowId);
     column = row.find('td[data-column="' + columnName + '"]');
     return column.addClass(className);
@@ -1373,6 +1427,7 @@ Table = (function() {
 
   Table.prototype.removeAllClassesFromRow = function(id) {
     var row;
+
     row = this.findRow(id);
     return row.removeClass();
   };
@@ -1398,6 +1453,7 @@ Table = (function() {
   Table.prototype.listenRowEvent = function(eventName, callback) {
     return this.table.on(eventName, 'tr', function() {
       var id;
+
       id = $(this).attr('data-id');
       return callback(id, $(this));
     });
@@ -1405,11 +1461,13 @@ Table = (function() {
 
   Table.prototype.toRowEdit = function(rowId) {
     var row;
+
     return row = this.findRow(rowId);
   };
 
   Table.prototype.toCellEdit = function(rowId, columnId) {
     var column, row;
+
     row = this.findRow(rowId);
     column = row.find('td[data-column="' + columnId + '"]');
     if (this.isCellEditable(column)) {
@@ -1433,6 +1491,7 @@ Table = (function() {
 
   Table.prototype.searchEditableColumnToBackward = function(column, depth) {
     var numberOfChildren, parent, prevColumn;
+
     if (depth == null) {
       depth = 1;
     }
@@ -1456,6 +1515,7 @@ Table = (function() {
 
   Table.prototype.searchEditableColumnToForward = function(column, depth) {
     var nextColumn, nextRow;
+
     if (depth == null) {
       depth = 1;
     }
@@ -1488,6 +1548,7 @@ Table = (function() {
 
   Table.prototype._editCell = function(column) {
     var input, _base;
+
     if (column === false) {
       return false;
     }
@@ -1501,6 +1562,7 @@ Table = (function() {
   Table.prototype.listenCellEvent = function(eventName, callback) {
     return this.table.on(eventName, 'td', function() {
       var id;
+
       id = $(this).parents('tr').attr('data-id');
       return callback(id, $(this));
     });
@@ -1509,6 +1571,7 @@ Table = (function() {
   Table.prototype.listenTextEvent = function(eventName, callback) {
     return this.table.find('span').on(eventName, function() {
       var id;
+
       id = $(this).parents('tr').attr('data-id');
       callback(id, $(this));
       return false;
@@ -1534,6 +1597,7 @@ ViewFilterChanged = (function() {
 
   ViewFilterChanged.prototype.serialize = function() {
     var condition, serializedFilterConditions, _i, _len, _ref;
+
     serializedFilterConditions = {};
     _ref = this.filterConditions;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -1569,6 +1633,7 @@ TableUIHelper = (function() {
 
   TableUIHelper.fitInputToCell = function(input, column) {
     var ULTRA_COSMIC_CONST_NUMBER, borderBottom, borderLeft, borderRight, borderTop, paddingBottom, paddingLeft, paddingRight, paddingTop;
+
     paddingLeft = parseInt(column.css('paddingLeft'), 10);
     paddingRight = parseInt(column.css('paddingRight'), 10);
     paddingTop = parseInt(column.css('paddingTop'), 10);
@@ -1595,11 +1660,13 @@ ExcelMoveMode = (function() {
 
   ExcelMoveMode.prototype.init = function(table, applicationGridService, rowSelectedClass) {
     var _this = this;
+
     this.table = table;
     this.applicationGridService = applicationGridService;
     this.rowSelectedClass = rowSelectedClass;
     return this.table.listenCellEvent('click', function(rowId, element) {
       var columnName;
+
       columnName = element.attr('data-column');
       return _this.table.toCellEdit(rowId, columnName);
     });
@@ -1608,9 +1675,11 @@ ExcelMoveMode = (function() {
   ExcelMoveMode.prototype.beforeHeader = function(tr) {
     var input,
       _this = this;
+
     input = $('<input></input>').attr('type', 'checkbox');
     input.on('click', function() {
       var checkbox;
+
       checkbox = $(_this);
       if (checkbox.prop('checked')) {
         _this.applicationGridService.unselectAll(_this.table.tableId);
@@ -1626,6 +1695,7 @@ ExcelMoveMode = (function() {
   ExcelMoveMode.prototype.beforeInsert = function(id, tr) {
     var input,
       _this = this;
+
     if (id === void 0) {
       tr.append($('<td></td>'));
       return;
@@ -1653,11 +1723,13 @@ ExcelMoveMode = (function() {
   ExcelMoveMode.prototype.move = function(input, column) {
     var columnId, rowId, tableId,
       _this = this;
+
     tableId = this.table.tableId;
     rowId = column.parents().attr('data-id').split('.')[2];
     columnId = column.attr('data-column');
     input.on('keydown', function(event) {
       var nextColumn, nextRow, prevColumn, prevRow, value;
+
       if (event.which === 9) {
         event.preventDefault();
         value = input.val();
@@ -1686,6 +1758,7 @@ ExcelMoveMode = (function() {
     });
     return input.on('blur', function() {
       var value;
+
       value = input.val();
       _this.applicationGridService.updateColumn(tableId, rowId, columnId, value);
       return input.replaceWith($('<span></span>').text(input.val()));
@@ -1717,6 +1790,7 @@ SequenceMoveMode = (function() {
 
   SequenceMoveMode.prototype.move = function(input, column, table) {
     var _this = this;
+
     input.on('keypress', function(event) {
       if (event.which === 13) {
         input.replaceWith($('<span></span>').text(input.val()));
@@ -1743,15 +1817,22 @@ ViewController = (function() {
     this.tableSelector = tableSelector;
     this.rowSelectedClass = rowSelectedClass != null ? rowSelectedClass : 'row_selected';
     this.moveModeName = moveModeName;
+    this.additionalFilter = __bind(this.additionalFilter, this);
+    this.movePageTo = __bind(this.movePageTo, this);
     this.rowModifiedClass = 'row_modified';
     this.applicationGridService = new GridService;
     this.applicationGridService.startup(this.gridId, columnConfigJSON, ajaxURL, ajaxCommandURL);
     this.selectedRows = {};
+    this.filter = void 0;
+    this._additionalFilter = null;
+    this.sort = null;
+    this.direction = null;
   }
 
   ViewController.prototype.startup = function(page, rowsPerGrid) {
     var moveMode,
       _this = this;
+
     this.page = page;
     this.rowsPerGrid = rowsPerGrid;
     moveMode = MoveModeFactory.create(this.moveModeName);
@@ -1764,6 +1845,7 @@ ViewController = (function() {
     }
     DomainEvent.subscribe('GridChanged', function(event, eventName) {
       var columnId, row, _i, _j, _len, _len1, _ref, _ref1;
+
       if (event.gridId !== _this.gridId) {
         return null;
       }
@@ -1812,8 +1894,17 @@ ViewController = (function() {
       }
       return delete _this.selectedRows[event.rowId];
     });
-    return ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
-      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, JSON.stringify(event));
+    ViewEvent.subscribe('ViewFilterChanged', function(event, eventName) {
+      _this.filter = JSON.stringify(event);
+      return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
+    });
+    return ViewEvent.subscribe('ViewSortChanged', function(event, eventName) {
+      console.log('ViewSortChanged start');
+      console.log(eventName, event);
+      _this.sort = event.columnId;
+      _this.direction = event.direction;
+      _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
+      return console.log('ViewSortChanged done');
     });
   };
 
@@ -1831,6 +1922,7 @@ ViewController = (function() {
 
   ViewController.prototype.removeSelectedRows = function() {
     var id, value, _ref, _results;
+
     _ref = this.selectedRows;
     _results = [];
     for (id in _ref) {
@@ -1854,7 +1946,12 @@ ViewController = (function() {
 
   ViewController.prototype.movePageTo = function(page) {
     this.page = page;
-    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid);
+    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid, this.filter, this._additionalFilter, this.sort, this.direction);
+  };
+
+  ViewController.prototype.additionalFilter = function(_additionalFilter) {
+    this._additionalFilter = _additionalFilter;
+    return this.applicationGridService.change(this.gridId, this.page, this.rowsPerGrid, this.filter, this._additionalFilter, this.sort, this.direction);
   };
 
   ViewController.prototype.cursor = function(rowId) {
@@ -1874,6 +1971,7 @@ ViewEvent = {
   },
   publish: function(eventName, event) {
     var eventData, subscriber, _i, _j, _len, _len1, _ref, _ref1;
+
     if (!(eventName in this.channels)) {
       this.channels[eventName] = [];
     }

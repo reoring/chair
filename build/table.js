@@ -73,20 +73,23 @@ Table = (function() {
 
         columnId = $(this).attr('data-column-id');
         i = $(this).find('i');
-        if (i.hasClass('icon-caret-down')) {
-          i.removeClass();
-          $(this).parents('tr').find('i').each(function(index, element) {
-            return $(element).removeClass();
-          });
-          i.addClass('icon-caret-up');
-          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'asc'));
-        } else {
+        if (i.hasClass('icon-caret-up')) {
           i.removeClass();
           $(this).parents('tr').find('i').each(function(index, element) {
             return $(element).removeClass();
           });
           i.addClass('icon-caret-down');
           return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'desc'));
+        } else if (i.hasClass('icon-caret-down')) {
+          i.removeClass();
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'none'));
+        } else {
+          i.removeClass();
+          $(this).parents('tr').find('i').each(function(index, element) {
+            return $(element).removeClass();
+          });
+          i.addClass('icon-caret-up');
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'asc'));
         }
       });
       span = $('<span></span>');
@@ -249,6 +252,10 @@ Table = (function() {
     return typeof (_base1 = this.moveMode).afterRowSelect === "function" ? _base1.afterRowSelect(rowId) : void 0;
   };
 
+  Table.prototype.removeRow = function(rowId) {
+    return this.findRow(rowId).remove();
+  };
+
   Table.prototype.unselectRow = function(rowId, cssClass) {
     var _base, _base1;
 
@@ -278,6 +285,10 @@ Table = (function() {
 
   Table.prototype.removeClassFromRow = function(id, className) {
     return this.findRow(id).removeClass(className);
+  };
+
+  Table.prototype.removeClassFromRowColumns = function(id, className) {
+    return this.findRow(id).find('td').removeClass(className);
   };
 
   Table.prototype.removeAllRows = function() {

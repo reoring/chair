@@ -84,9 +84,9 @@ class GridService
             grid.removeRow(rowId)
         null
 
-    change: (gridId, page, rowsPerGrid, filter, additionalFilter)->
+    change: (gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction)->
         throw new Error('Grid ID is required') unless gridId
         throw new Error('Page is required') unless page
         throw new Error('Rows Per Grid is required') unless rowsPerGrid
-        DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter, additionalFilter)
+        DomainRegistry.gridChangeService().change(gridId, page, rowsPerGrid, filter, additionalFilter, sort, direction)
         null

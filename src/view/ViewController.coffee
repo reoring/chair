@@ -4,6 +4,10 @@ class ViewController
 		@applicationGridService = new GridService
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL, ajaxCommandURL)
 		@selectedRows = {}
+		@filter = undefined
+		@_additionalFilter = null # we prefix underscore to prevent confilict with a method 'additonalFilter'
+		@sort = null
+		@direction = null
 
 	startup: (@page, @rowsPerGrid)->
 		moveMode = MoveModeFactory.create @moveModeName
@@ -56,8 +60,15 @@ class ViewController
 
 		ViewEvent.subscribe 'ViewFilterChanged', (event, eventName)=>
 			@filter = JSON.stringify(event)
-			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter
+			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
 
+		ViewEvent.subscribe 'ViewSortChanged', (event, eventName)=>
+			console.log 'ViewSortChanged start'
+			console.log eventName, event
+			@sort = event.columnId
+			@direction = event.direction
+			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
+			console.log 'ViewSortChanged done'
 
 	add: (rowId, values)->
 		@applicationGridService.append @gridId, rowId, values
@@ -81,11 +92,11 @@ class ViewController
 	unselectAll: () ->
 		@applicationGridService.unselectAll(@gridId)
 
-	movePageTo: (@page) ->
-		@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter
+	movePageTo: (@page) =>
+		@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
 
-	additionalFilter: (parameters) ->
-		@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, parameters
+	additionalFilter: (@_additionalFilter) =>
+		@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
 
 	cursor: (rowId) ->
 		@table.cursorRow rowId unless rowId is undefined

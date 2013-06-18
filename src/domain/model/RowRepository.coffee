@@ -65,6 +65,7 @@ class JQueryAjaxRowRepository extends RowRepository
         data.bulk = true
         data.gridId = gridId
         data.rows = JSON.stringify(modifiedRows)
+        data.deletedRows = JSON.stringify(deletedRows)
 
         $.ajax {
             url: @ajaxCommandURL

@@ -93,6 +93,9 @@ ViewController = (function() {
       return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
     });
     return ViewEvent.subscribe('ViewSortChanged', function(event, eventName) {
+      if (event.tableId !== _this.gridId) {
+        return;
+      }
       _this.sort = event.columnId;
       _this.direction = event.direction;
       return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);

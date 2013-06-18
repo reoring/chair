@@ -64,6 +64,7 @@ class ViewController
 			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction
 
 		ViewEvent.subscribe 'ViewSortChanged', (event, eventName)=>
+			return if event.tableId isnt @gridId
 			@sort = event.columnId
 			@direction = event.direction
 			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, @_additionalFilter, @sort, @direction

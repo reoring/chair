@@ -1169,7 +1169,7 @@ Table = (function() {
   };
 
   Table.prototype.header = function(columns) {
-    var column, newTr, span, th, _base, _base1, _i, _len, _ref;
+    var column, newTr, span, th, that, _base, _base1, _i, _len, _ref;
 
     this.columns = columns;
     newTr = $('<tr></tr>');
@@ -1180,6 +1180,7 @@ Table = (function() {
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       column = _ref[_i];
       th = $('<th></th>').attr('data-column-id', column.id);
+      that = this;
       th.on('click', function() {
         var columnId, i;
 
@@ -1191,17 +1192,17 @@ Table = (function() {
             return $(element).removeClass();
           });
           i.addClass('icon-caret-down');
-          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'desc'));
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(that.tableId, columnId, 'desc'));
         } else if (i.hasClass('icon-caret-down')) {
           i.removeClass();
-          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'none'));
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(that.tableId, columnId, 'none'));
         } else {
           i.removeClass();
           $(this).parents('tr').find('i').each(function(index, element) {
             return $(element).removeClass();
           });
           i.addClass('icon-caret-up');
-          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(columnId, 'asc'));
+          return ViewEvent.publish('ViewSortChanged', new ViewSortChanged(that.tableId, columnId, 'asc'));
         }
       });
       span = $('<span></span>');
@@ -1608,13 +1609,15 @@ ViewFilterChanged = (function() {
 })();
 
 ViewSortChanged = (function() {
-  function ViewSortChanged(columnId, direction) {
+  function ViewSortChanged(tableId, columnId, direction) {
+    this.tableId = tableId;
     this.columnId = columnId;
     this.direction = direction;
   }
 
   ViewSortChanged.prototype.serialize = function() {
     return {
+      tableId: this.tableId,
       columnId: this.columnId,
       direction: this.direction
     };
@@ -1898,6 +1901,9 @@ ViewController = (function() {
       return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);
     });
     return ViewEvent.subscribe('ViewSortChanged', function(event, eventName) {
+      if (event.tableId !== _this.gridId) {
+        return;
+      }
       _this.sort = event.columnId;
       _this.direction = event.direction;
       return _this.applicationGridService.change(_this.gridId, _this.page, _this.rowsPerGrid, _this.filter, _this._additionalFilter, _this.sort, _this.direction);

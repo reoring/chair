@@ -49,6 +49,8 @@ class Table
         for column in @columns
             th = $('<th></th>').attr('data-column-id', column.id)
 
+            that = this
+
             th.on 'click', ->
                 columnId = $(this).attr('data-column-id')
                 i = $(this).find('i')
@@ -58,16 +60,16 @@ class Table
                     $(this).parents('tr').find('i').each (index, element) ->
                       $(element).removeClass()
                     i.addClass 'icon-caret-down'
-                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'desc'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged(that.tableId, columnId, 'desc')
                 else if i.hasClass 'icon-caret-down'
                     i.removeClass()
-                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'none'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged(that.tableId, columnId, 'none')
                 else
                     i.removeClass()
                     $(this).parents('tr').find('i').each (index, element) ->
                       $(element).removeClass()
                     i.addClass 'icon-caret-up'
-                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged columnId, 'asc'
+                    ViewEvent.publish 'ViewSortChanged', new ViewSortChanged(that.tableId, columnId, 'asc')
 
             span = $('<span></span>')
             span.append column.title
@@ -343,7 +345,7 @@ class ViewFilterChanged
         return {tableId: @tableId, filterConditions: filterConditions}
 
 class ViewSortChanged
-    constructor: (@columnId, @direction) ->
+    constructor: (@tableId, @columnId, @direction) ->
 
     serialize: ->
-        return {columnId: @columnId, direction: @direction}
+        return {tableId: @tableId, columnId: @columnId, direction: @direction}

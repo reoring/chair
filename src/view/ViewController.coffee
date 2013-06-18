@@ -55,7 +55,8 @@ class ViewController
 			delete @selectedRows[event.rowId]
 
 		ViewEvent.subscribe 'ViewFilterChanged', (event, eventName)=>
-			@applicationGridService.change @gridId, @page, @rowsPerGrid, JSON.stringify(event)
+			@filter = JSON.stringify(event)
+			@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter
 
 
 	add: (rowId, values)->
@@ -81,7 +82,10 @@ class ViewController
 		@applicationGridService.unselectAll(@gridId)
 
 	movePageTo: (@page) ->
-		@applicationGridService.change @gridId, @page, @rowsPerGrid
+		@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter
+
+	additionalFilter: (parameters) ->
+		@applicationGridService.change @gridId, @page, @rowsPerGrid, @filter, parameters
 
 	cursor: (rowId) ->
 		@table.cursorRow rowId unless rowId is undefined

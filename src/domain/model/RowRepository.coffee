@@ -82,10 +82,11 @@ class JQueryAjaxRowRepository extends RowRepository
         $.ajax {
             url: @ajaxQueryURL
             data: {
-                    id:          condition.gridId
-                    page:        condition.page
-                    rowsPerGrid: condition.rowsPerGrid
-                    filter:      condition.filter
+                    id:               condition.gridId
+                    page:             condition.page
+                    rowsPerGrid:      condition.rowsPerGrid
+                    filter:           condition.filter
+                    additionalFilter: condition.additionalFilter
                   }
 
             dataType: 'json'

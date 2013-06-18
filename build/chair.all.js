@@ -724,6 +724,7 @@ JQueryAjaxRowRepository = (function(_super) {
     data.bulk = true;
     data.gridId = gridId;
     data.rows = JSON.stringify(modifiedRows);
+    data.deletedRows = JSON.stringify(deletedRows);
     return $.ajax({
       url: this.ajaxCommandURL,
       data: data,

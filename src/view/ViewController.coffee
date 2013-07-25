@@ -5,7 +5,7 @@ class ViewController
 		@applicationGridService.startup(@gridId, columnConfigJSON, ajaxURL, ajaxCommandURL)
 		@selectedRows = {}
 		@filter = undefined
-		@_additionalFilter = null # we prefix underscore to prevent confilict with a method 'additonalFilter'
+		@_additionalFilter = null # we prefix underscore to prevent confilict with a method 'additionalFilter'
 		@sort = null
 		@direction = null
 

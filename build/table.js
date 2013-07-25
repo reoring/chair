@@ -211,7 +211,7 @@ Table = (function() {
       _this = this;
 
     td = $('<td></td>');
-    input = $('<input></input>').attr('type', 'text').attr('data-filter-column', columnConfig.id).val(value).addClass('filter_input');
+    input = $('<input></input>').attr('type', 'text').attr('data-filter-column', columnConfig.id).attr('name', columnConfig.id + '_filter').val(value).addClass('filter_input');
     input.on('keyup', function() {
       window.clearTimeout(_this.timeoutID);
       return _this.timeoutID = setTimeout(function() {

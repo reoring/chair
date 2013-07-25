@@ -172,6 +172,7 @@ class Table
         td = $('<td></td>')
         input = $('<input></input>').attr('type', 'text')
                                     .attr('data-filter-column', columnConfig.id)
+                                    .attr('name', columnConfig.id + '_filter')
                                     .val(value)
                                     .addClass 'filter_input'
 

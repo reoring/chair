@@ -106,7 +106,7 @@ class Table
         columnIndex = 0
 
         for x in data
-            newTr.append @createRowColumn @columns[columnIndex], x
+            newTr.append @createRowColumn(id, @columns[columnIndex], x)
             columnIndex++
 
         oldTr.html(newTr.html())
@@ -140,7 +140,7 @@ class Table
         @rowsById[id] = data
 
         for columnConfig in @columnConfig
-            tr.append @createRowColumn columnConfig, data[columnConfig.id]
+            tr.append @createRowColumn id, columnConfig, data[columnConfig.id]
 
         @table.find('tbody').append tr
 
@@ -161,12 +161,15 @@ class Table
 
         @table.find('tbody').append tr
 
-    createRowColumn: (column, value) ->
+    createRowColumn: (id, column, value) ->
         td = $('<td></td>')
         td.addClass(column).attr('data-column', column.id)
         td.attr('data-column-editable', column.editable)
         td.addClass('disabled') if column.editable is false
-        td.append $('<span></span>').append value
+
+        span = $('<span></span>')
+        span.attr('id', column.id + '::' + id)
+        td.append span.append value
 
     createFilterColumn: (columnConfig, value) ->
         td = $('<td></td>')

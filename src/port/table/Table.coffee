@@ -309,7 +309,10 @@ class Table
     _editCell: (column) ->
         return false if column is false
 
-        input = $('<input type="text"></input>').addClass('inline_edit').val(column.text())
+        input = $('<input type="text" />')
+            .addClass('inline_edit')
+            .val(column.text())
+            .attr('name', column.attr('data-column') + "_edit")
 
         TableUIHelper.fitInputToCell input, column
         column.find("span").replaceWith(input)

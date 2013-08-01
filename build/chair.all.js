@@ -1241,7 +1241,7 @@ Table = (function() {
     columnIndex = 0;
     for (_i = 0, _len = data.length; _i < _len; _i++) {
       x = data[_i];
-      newTr.append(this.createRowColumn(this.columns[columnIndex], x));
+      newTr.append(this.createRowColumn(id, this.columns[columnIndex], x));
       columnIndex++;
     }
     return oldTr.html(newTr.html());
@@ -1287,7 +1287,7 @@ Table = (function() {
     _ref = this.columnConfig;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       columnConfig = _ref[_i];
-      tr.append(this.createRowColumn(columnConfig, data[columnConfig.id]));
+      tr.append(this.createRowColumn(id, columnConfig, data[columnConfig.id]));
     }
     this.table.find('tbody').append(tr);
     return typeof (_base1 = this.moveMode).afterInsert === "function" ? _base1.afterInsert(id, tr) : void 0;
@@ -1315,8 +1315,8 @@ Table = (function() {
     return this.table.find('tbody').append(tr);
   };
 
-  Table.prototype.createRowColumn = function(column, value) {
-    var td;
+  Table.prototype.createRowColumn = function(id, column, value) {
+    var span, td;
 
     td = $('<td></td>');
     td.addClass(column).attr('data-column', column.id);
@@ -1324,7 +1324,9 @@ Table = (function() {
     if (column.editable === false) {
       td.addClass('disabled');
     }
-    return td.append($('<span></span>').append(value));
+    span = $('<span></span>');
+    span.attr('id', column.id + '::' + id);
+    return td.append(span.append(value));
   };
 
   Table.prototype.createFilterColumn = function(columnConfig, value) {
@@ -1545,7 +1547,7 @@ Table = (function() {
     if (column === false) {
       return false;
     }
-    input = $('<input type="text"></input>').addClass('inline_edit').val(column.text());
+    input = $('<input type="text" />').addClass('inline_edit').val(column.text()).attr('name', column.attr('data-column') + "_edit");
     TableUIHelper.fitInputToCell(input, column);
     column.find("span").replaceWith(input);
     input.select();

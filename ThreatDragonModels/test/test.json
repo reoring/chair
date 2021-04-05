@@ -20,8 +20,8 @@
                 "height": 80
               },
               "position": {
-                "x": 29,
-                "y": 183
+                "x": 22,
+                "y": 138
               },
               "angle": 0,
               "id": "fc0bee2a-57ce-4481-a0e2-d82ea48d8152",
@@ -32,7 +32,7 @@
                   "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
-                  "text": "actor 0"
+                  "text": "User Web Browser"
                 },
                 ".element-text": {
                   "class": "element-text hasNoOpenThreats isInScope"
@@ -46,30 +46,23 @@
                 "height": 100
               },
               "position": {
-                "x": 349,
-                "y": 43
+                "x": 390,
+                "y": 66
               },
               "angle": 0,
               "id": "4fe1c652-dcf6-4e4f-a500-73c9f09e8bfa",
               "z": 2,
-              "hasOpenThreats": true,
-              "threats": [
-                {
-                  "status": "Open",
-                  "severity": "Medium",
-                  "title": "hack",
-                  "type": "Denial of service"
-                }
-              ],
+              "hasOpenThreats": false,
+              "threats": [],
               "attrs": {
                 ".element-shape": {
-                  "class": "element-shape hasOpenThreats isInScope"
+                  "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
-                  "text": "process 1"
+                  "text": "API Server"
                 },
                 ".element-text": {
-                  "class": "element-text hasOpenThreats isInScope"
+                  "class": "element-text hasNoOpenThreats isInScope"
                 }
               }
             },
@@ -80,8 +73,8 @@
                 "height": 80
               },
               "position": {
-                "x": 631,
-                "y": 184
+                "x": 697,
+                "y": 169
               },
               "angle": 0,
               "id": "a4f5ba95-249c-4b7a-9346-d1ba12977937",
@@ -92,7 +85,7 @@
                   "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
-                  "text": "store 2"
+                  "text": "Database"
                 },
                 ".element-text": {
                   "class": "element-text hasNoOpenThreats isInScope"
@@ -168,7 +161,7 @@
                   "position": 0.5,
                   "attrs": {
                     "text": {
-                      "text": "flow 5",
+                      "text": "Login",
                       "font-weight": "400",
                       "font-size": "small"
                     }
@@ -186,12 +179,90 @@
                   "class": "connection hasNoOpenThreats isInScope"
                 }
               }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 774,
+                "y": 472
+              },
+              "angle": 0,
+              "id": "cc7ba1bd-4e90-492e-a618-9772adffc986",
+              "z": 7,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "Developer SQL Client"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Boundary",
+              "smooth": true,
+              "source": {
+                "x": 580,
+                "y": 369
+              },
+              "target": {
+                "x": 1064,
+                "y": 423
+              },
+              "vertices": [],
+              "id": "ed74937f-3f31-402f-a4f8-4a2b85586f4f",
+              "z": 8,
+              "attrs": {}
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "cc7ba1bd-4e90-492e-a618-9772adffc986"
+              },
+              "target": {
+                "id": "a4f5ba95-249c-4b7a-9346-d1ba12977937"
+              },
+              "vertices": [],
+              "id": "d932b907-c2c4-417a-956c-7489ee3d4e67",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "DB Administration\nQuery",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 9,
+              "hasOpenThreats": false,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
             }
           ]
         },
         "size": {
           "height": 590,
-          "width": 793
+          "width": 859.5204467773438
         }
       }
     ],

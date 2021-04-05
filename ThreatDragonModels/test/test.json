@@ -20,8 +20,8 @@
                 "height": 80
               },
               "position": {
-                "x": 22,
-                "y": 138
+                "x": 70,
+                "y": 330
               },
               "angle": 0,
               "id": "fc0bee2a-57ce-4481-a0e2-d82ea48d8152",
@@ -46,8 +46,8 @@
                 "height": 100
               },
               "position": {
-                "x": 390,
-                "y": 66
+                "x": 440,
+                "y": 240
               },
               "angle": 0,
               "id": "4fe1c652-dcf6-4e4f-a500-73c9f09e8bfa",
@@ -73,8 +73,8 @@
                 "height": 80
               },
               "position": {
-                "x": 697,
-                "y": 169
+                "x": 760,
+                "y": 320
               },
               "angle": 0,
               "id": "a4f5ba95-249c-4b7a-9346-d1ba12977937",
@@ -133,12 +133,12 @@
               "type": "tm.Boundary",
               "smooth": true,
               "source": {
-                "x": 232,
-                "y": 35
+                "x": 310,
+                "y": 130
               },
               "target": {
-                "x": 280,
-                "y": 470
+                "x": 350,
+                "y": 640
               },
               "vertices": [],
               "id": "aab39af1-6b67-4405-a549-d833d2f68ae1",
@@ -187,8 +187,8 @@
                 "height": 80
               },
               "position": {
-                "x": 774,
-                "y": 472
+                "x": 920,
+                "y": 670
               },
               "angle": 0,
               "id": "cc7ba1bd-4e90-492e-a618-9772adffc986",
@@ -210,12 +210,12 @@
               "type": "tm.Boundary",
               "smooth": true,
               "source": {
-                "x": 580,
-                "y": 369
+                "x": 670,
+                "y": 560
               },
               "target": {
-                "x": 1064,
-                "y": 423
+                "x": 1170,
+                "y": 590
               },
               "vertices": [],
               "id": "ed74937f-3f31-402f-a4f8-4a2b85586f4f",
@@ -257,12 +257,72 @@
                   "class": "connection hasNoOpenThreats isInScope"
                 }
               }
+            },
+            {
+              "type": "tm.Store",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 760,
+                "y": 110
+              },
+              "angle": 0,
+              "id": "2e0565cf-2a35-457b-9dd6-28425c0bf6fa",
+              "z": 10,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "Logs"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "4fe1c652-dcf6-4e4f-a500-73c9f09e8bfa"
+              },
+              "target": {
+                "id": "2e0565cf-2a35-457b-9dd6-28425c0bf6fa"
+              },
+              "vertices": [],
+              "id": "39fb50a7-f121-48ce-8de0-6ce49d4738fa",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "put logs",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 11,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
             }
           ]
         },
         "size": {
-          "height": 590,
-          "width": 859.5204467773438
+          "height": 600,
+          "width": 936.3062744140625
         }
       }
     ],
